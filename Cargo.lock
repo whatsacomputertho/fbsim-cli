@@ -127,9 +127,9 @@ dependencies = [
 
 [[package]]
 name = "fbsim-core"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d584b86b6f52f8be9888c5e5a3a2ad5c8caad8bc8877afd8b04f0d4895742e7d"
+checksum = "39d3fc6ae1cebc05ebbf883aae69a019bd6811dd05b98aceb81d4fceac773232"
 dependencies = [
  "rand",
  "rand_distr",
