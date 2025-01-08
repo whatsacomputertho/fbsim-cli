@@ -6,6 +6,8 @@
 
 A command-line interface built atop the fbsim-core Rust crate which enables users to simulate american football games.
 
+![Demo of the fbsim CLI](doc/fbsim-cli-demo.gif)
+
 ## Usage
 
 ### Game simulation
