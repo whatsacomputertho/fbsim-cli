@@ -33,7 +33,7 @@ fn simulate_game(args: FbsimGameSimArgs) {
         &home_team,
         &away_team,
         &mut rng
-    );
+    ).unwrap();
 
     // Serialize the box score as a string based on the given output format
     let output_format = OutputFormat::from_str(
