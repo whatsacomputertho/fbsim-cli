@@ -132,7 +132,7 @@ checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
 name = "fbsim-cli"
-version = "1.0.0-alpha.2"
+version = "1.0.0-alpha.3"
 dependencies = [
  "clap",
  "fbsim-core",
@@ -142,9 +142,9 @@ dependencies = [
 
 [[package]]
 name = "fbsim-core"
-version = "1.0.0-alpha.4"
+version = "1.0.0-alpha.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea974ecf2490b1acfb2fe0d6fda1a560b506218b2f0417cde55784233c9891ac"
+checksum = "f75ecac989d1fc64c89817c03430e6241be29dc17f8b6ecc06c81614c65c63f4"
 dependencies = [
  "rand",
  "rand_distr",
