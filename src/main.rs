@@ -75,7 +75,7 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
     let mut tie_props = [[0.0_f64; 11]; 11];
 
     // Instantiate a progress bar for benchmark progress
-    let progress_bar = ProgressBar::new(11 * 11 * 500);
+    let progress_bar = ProgressBar::new(11 * 11 * 10000);
 
     // Run many game simulations and track the observed
     // win and tie proportions by skill differential
@@ -87,19 +87,19 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
             // Set the away offense and home defense
             let away_off = ((10 - j) * 10) as i32;
             let home_def = (j * 10) as i32;
-            for k in 1..501 {
-                // Create the home and away teams from their files
-                let home_team = FootballTeam::from_properties(
-                    "Home Team",
-                    home_off,
-                    home_def
-                ).unwrap();
-                let away_team = FootballTeam::from_properties(
-                    "Away Team",
-                    away_off,
-                    away_def
-                ).unwrap();
 
+            // Create the home and away teams
+            let home_team = FootballTeam::from_properties(
+                "Home Team",
+                home_off,
+                home_def
+            ).unwrap();
+            let away_team = FootballTeam::from_properties(
+                "Away Team",
+                away_off,
+                away_def
+            ).unwrap();
+            for k in 1..10001 {
                 // Simulate the game
                 let box_score = box_score_sim.sim(
                     &home_team,
@@ -110,7 +110,6 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
                 // Decide whether this was a tie, or home win / away win
                 let was_tie = box_score.home_score() == box_score.away_score();
                 let home_win = box_score.home_score() > box_score.away_score();
-                let away_win = box_score.home_score() < box_score.away_score();
 
                 // Increment the tie proportions
                 tie_props[i][j] = if was_tie {
@@ -118,18 +117,12 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
                 } else {
                     ((tie_props[i][j] * ((k as f64) - 1_f64)) + 0_f64) / (k as f64)
                 };
-                tie_props[j][i] = tie_props[i][j];
 
                 // Increment the win proportions
                 win_props[i][j] = if home_win {
                     ((win_props[i][j] * ((k as f64) - 1_f64) + 1_f64)) / (k as f64)
                 } else {
                     ((win_props[i][j] * ((k as f64) - 1_f64) + 0_f64)) / (k as f64)
-                };
-                win_props[j][i] = if away_win {
-                    ((win_props[j][i] * ((k as f64) - 1_f64) + 1_f64)) / (k as f64)
-                } else {
-                    ((win_props[j][i] * ((k as f64) - 1_f64) + 0_f64)) / (k as f64)
                 };
 
                 // Increment the progress bar
@@ -145,7 +138,7 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
     for i in 0..11 {
-        let table_line = win_props[i].iter().map(|x| format!("{:.2}", x)).collect::<Vec<_>>().join("\t");
+        let table_line = win_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
@@ -164,7 +157,7 @@ fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
     for i in 0..11 {
-        let table_line = tie_props[i].iter().map(|x| format!("{:.2}", x)).collect::<Vec<_>>().join("\t");
+        let table_line = tie_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
