@@ -51,10 +51,15 @@ pub struct FbsimGameSimArgs {
     pub away: String,
 }
 
+/// The benchmark subcommand arguments
+#[derive(Args, Clone)]
+pub struct FbsimGameBenchmarkArgs {}
+
 /// The subcommands of the fbsim game command
 #[derive(Subcommand, Clone)]
 pub enum FbsimGameSubcommand {
-    Sim(FbsimGameSimArgs)
+    Sim(FbsimGameSimArgs),
+    Benchmark(FbsimGameBenchmarkArgs)
 }
 
 /// Enum into which the output format argument is parsed
