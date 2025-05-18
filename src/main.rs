@@ -9,6 +9,7 @@ use crate::cli::fbsim::{
 use crate::cli::game::FbsimGameSubcommand;
 use crate::cli::league::FbsimLeagueSubcommand;
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
+use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
 
 use crate::game::benchmark::game_benchmark;
 use crate::game::sim::simulate_game;
@@ -16,6 +17,9 @@ use crate::league::create::create_league;
 use crate::league::team::add::add_team;
 use crate::league::team::get::get_team;
 use crate::league::team::list::list_teams;
+use crate::league::season::create::create_season;
+use crate::league::season::get::get_season;
+use crate::league::season::list::list_seasons;
 
 use clap::Parser;
 
@@ -36,6 +40,11 @@ fn main() {
                 FbsimLeagueTeamSubcommand::Add(args) => add_team(args.clone()),
                 FbsimLeagueTeamSubcommand::Get(args) => get_team(args.clone()),
                 FbsimLeagueTeamSubcommand::List(args) => list_teams(args.clone())
+            },
+            FbsimLeagueSubcommand::Season { command } => match command {
+                FbsimLeagueSeasonSubcommand::Create(args) => create_season(args.clone()),
+                FbsimLeagueSeasonSubcommand::Get(args) => get_season(args.clone()),
+                FbsimLeagueSeasonSubcommand::List(args) => list_seasons(args.clone())
             }
         }
     }

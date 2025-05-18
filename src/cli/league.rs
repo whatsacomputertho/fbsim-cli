@@ -1,8 +1,10 @@
 pub mod team;
+pub mod season;
 
 use clap::{Subcommand, Args};
 
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
+use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
 
 /// Create a new FootballSim league
 #[derive(Args, Clone)]
@@ -25,5 +27,9 @@ pub enum FbsimLeagueSubcommand {
     Team {
         #[command(subcommand)]
         command: FbsimLeagueTeamSubcommand
+    },
+    Season {
+        #[command(subcommand)]
+        command: FbsimLeagueSeasonSubcommand
     }
 }
