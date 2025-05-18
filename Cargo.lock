@@ -170,10 +170,10 @@ dependencies = [
 
 [[package]]
 name = "fbsim-core"
-version = "1.0.0-alpha.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcebe85c3cb0f83a7a89ae42691963416ab8500e82c941b68047ef5802170baf"
+version = "1.0.0-alpha.15"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=league-schedule-gen#5dc0c12ed2aef9a2205a76b475d322c39a7de799"
 dependencies = [
+ "lazy_static",
  "rand",
  "rand_distr",
  "serde",
@@ -231,6 +231,12 @@ dependencies = [
  "once_cell",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
