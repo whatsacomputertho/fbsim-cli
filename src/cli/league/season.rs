@@ -6,7 +6,12 @@ pub struct FbsimLeagueSeasonCreateArgs {
     /// The input filepath for the league
     #[arg(short='l')]
     #[arg(long="league")]
-    pub league: String
+    pub league: String,
+
+    /// The input directory path for the league season teams
+    #[arg(short='t')]
+    #[arg(long="teams")]
+    pub teams: String,
 }
 
 /// Get a past or current season for the FootballSim league

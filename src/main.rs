@@ -2,6 +2,8 @@ mod cli;
 mod game;
 mod league;
 
+use std::process;
+
 use crate::cli::fbsim::{
     FbsimCli,
     FbsimSubcommand
@@ -15,6 +17,7 @@ use crate::game::benchmark::game_benchmark;
 use crate::game::sim::simulate_game;
 use crate::league::create::create_league;
 use crate::league::team::add::add_team;
+use crate::league::team::create::create_team;
 use crate::league::team::get::get_team;
 use crate::league::team::list::list_teams;
 use crate::league::season::create::create_season;
@@ -29,23 +32,31 @@ fn main() {
 
     // Perform the subcommand
     let command = fbdb_cli.command();
-    match &command {
+    let command_res = match &command {
         FbsimSubcommand::Game { command } => match command {
-            FbsimGameSubcommand::Sim(args) => simulate_game(args.clone()),
-            FbsimGameSubcommand::Benchmark(args) => game_benchmark(args.clone())
+            FbsimGameSubcommand::Sim(args) => Ok(simulate_game(args.clone())),
+            FbsimGameSubcommand::Benchmark(args) => Ok(game_benchmark(args.clone()))
         },
         FbsimSubcommand::League { command } => match command {
-            FbsimLeagueSubcommand::Create(args) => create_league(args.clone()),
+            FbsimLeagueSubcommand::Create(args) => Ok(create_league(args.clone())),
             FbsimLeagueSubcommand::Team { command } => match command {
-                FbsimLeagueTeamSubcommand::Add(args) => add_team(args.clone()),
-                FbsimLeagueTeamSubcommand::Get(args) => get_team(args.clone()),
-                FbsimLeagueTeamSubcommand::List(args) => list_teams(args.clone())
+                FbsimLeagueTeamSubcommand::Add(args) => Ok(add_team(args.clone())),
+                FbsimLeagueTeamSubcommand::Create(args) => create_team(args.clone()),
+                FbsimLeagueTeamSubcommand::Get(args) => Ok(get_team(args.clone())),
+                FbsimLeagueTeamSubcommand::List(args) => Ok(list_teams(args.clone()))
             },
             FbsimLeagueSubcommand::Season { command } => match command {
                 FbsimLeagueSeasonSubcommand::Create(args) => create_season(args.clone()),
-                FbsimLeagueSeasonSubcommand::Get(args) => get_season(args.clone()),
-                FbsimLeagueSeasonSubcommand::List(args) => list_seasons(args.clone())
+                FbsimLeagueSeasonSubcommand::Get(args) => Ok(get_season(args.clone())),
+                FbsimLeagueSeasonSubcommand::List(args) => Ok(list_seasons(args.clone()))
             }
+        }
+    };
+    match command_res {
+        Ok(()) => (),
+        Err(error) => {
+            println!("{}", error);
+            process::exit(1);
         }
     }
 }
