@@ -1,7 +1,8 @@
 use std::fs;
 use std::collections::BTreeMap;
 
-use fbsim_core::league::{League, LeagueTeam};
+use fbsim_core::league::League;
+use fbsim_core::league::team::LeagueTeam;
 
 use crate::cli::league::team::FbsimLeagueTeamListArgs;
 

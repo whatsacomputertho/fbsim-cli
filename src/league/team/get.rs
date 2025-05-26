@@ -1,6 +1,7 @@
 use std::fs;
 
-use fbsim_core::league::{League, LeagueTeam};
+use fbsim_core::league::League;
+use fbsim_core::league::team::LeagueTeam;
 
 use crate::cli::league::team::FbsimLeagueTeamGetArgs;
 

@@ -1,17 +1,16 @@
+pub mod team;
+
 use clap::{Subcommand, Args};
 
-/// Create a new season for the FootballSim league
+use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
+
+/// Add a new season to the FootballSim league
 #[derive(Args, Clone)]
-pub struct FbsimLeagueSeasonCreateArgs {
+pub struct FbsimLeagueSeasonAddArgs {
     /// The input filepath for the league
     #[arg(short='l')]
     #[arg(long="league")]
-    pub league: String,
-
-    /// The input directory path for the league season teams
-    #[arg(short='t')]
-    #[arg(long="teams")]
-    pub teams: String,
+    pub league: String
 }
 
 /// Get a past or current season for the FootballSim league
@@ -40,7 +39,11 @@ pub struct FbsimLeagueSeasonListArgs {
 /// Manage seasons for an existing FootballSim league
 #[derive(Subcommand, Clone)]
 pub enum FbsimLeagueSeasonSubcommand {
-    Create(FbsimLeagueSeasonCreateArgs),
+    Add(FbsimLeagueSeasonAddArgs),
     Get(FbsimLeagueSeasonGetArgs),
-    List(FbsimLeagueSeasonListArgs)
+    List(FbsimLeagueSeasonListArgs),
+    Team {
+        #[command(subcommand)]
+        command: FbsimLeagueSeasonTeamSubcommand
+    },
 }

@@ -12,17 +12,18 @@ use crate::cli::game::FbsimGameSubcommand;
 use crate::cli::league::FbsimLeagueSubcommand;
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
 use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
+use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 
 use crate::game::benchmark::game_benchmark;
 use crate::game::sim::simulate_game;
 use crate::league::create::create_league;
 use crate::league::team::add::add_team;
-use crate::league::team::create::create_team;
 use crate::league::team::get::get_team;
 use crate::league::team::list::list_teams;
-use crate::league::season::create::create_season;
+use crate::league::season::add::add_season;
 use crate::league::season::get::get_season;
 use crate::league::season::list::list_seasons;
+use crate::league::season::team::add::add_season_team;
 
 use clap::Parser;
 
@@ -41,14 +42,16 @@ fn main() {
             FbsimLeagueSubcommand::Create(args) => Ok(create_league(args.clone())),
             FbsimLeagueSubcommand::Team { command } => match command {
                 FbsimLeagueTeamSubcommand::Add(args) => Ok(add_team(args.clone())),
-                FbsimLeagueTeamSubcommand::Create(args) => create_team(args.clone()),
                 FbsimLeagueTeamSubcommand::Get(args) => Ok(get_team(args.clone())),
                 FbsimLeagueTeamSubcommand::List(args) => Ok(list_teams(args.clone()))
             },
             FbsimLeagueSubcommand::Season { command } => match command {
-                FbsimLeagueSeasonSubcommand::Create(args) => create_season(args.clone()),
+                FbsimLeagueSeasonSubcommand::Add(args) => add_season(args.clone()),
                 FbsimLeagueSeasonSubcommand::Get(args) => Ok(get_season(args.clone())),
-                FbsimLeagueSeasonSubcommand::List(args) => Ok(list_seasons(args.clone()))
+                FbsimLeagueSeasonSubcommand::List(args) => Ok(list_seasons(args.clone())),
+                FbsimLeagueSeasonSubcommand::Team{ command } => match command {
+                    FbsimLeagueSeasonTeamSubcommand::Add(args) => add_season_team(args.clone())
+                }
             }
         }
     };

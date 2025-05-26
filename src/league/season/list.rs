@@ -1,6 +1,7 @@
 use std::fs;
 
-use fbsim_core::league::{League, LeagueSeason};
+use fbsim_core::league::League;
+use fbsim_core::league::season::LeagueSeason;
 
 use crate::cli::league::season::FbsimLeagueSeasonListArgs;
 
