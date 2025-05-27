@@ -9,15 +9,10 @@ use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
 /// Create a new FootballSim league
 #[derive(Args, Clone)]
 pub struct FbsimLeagueCreateArgs {
-    /// The format to output
-    #[arg(short='o')]
-    #[arg(long="output")]
-    pub output_format: Option<String>,
-
     /// The file to write to
     #[arg(short='f')]
     #[arg(long="file")]
-    pub output_file: Option<String>,
+    pub output_file: String,
 }
 
 /// Manage FootballSim leagues

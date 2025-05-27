@@ -6,18 +6,34 @@ use crate::cli::league::team::FbsimLeagueTeamAddArgs;
 
 use serde_json;
 
-pub fn add_team(args: FbsimLeagueTeamAddArgs) {
+pub fn add_team(args: FbsimLeagueTeamAddArgs) -> Result<(), String> {
     // Load the league from its file as mutable
-    let mut league: League = serde_json::from_str(
-        &fs::read_to_string(&args.league).unwrap()
-    ).unwrap();
+    let file_res = &fs::read_to_string(&args.league);
+    let file = match file_res {
+        Ok(file) => file,
+        Err(error) => return Err(format!("Error loading league file: {}", error)),
+    };
+    let league_res = serde_json::from_str(file);
+    let mut league: League = match league_res {
+        Ok(league) => league,
+        Err(error) => return Err(format!("Error loading league from file: {}", error)),
+    };
 
     // Add a team to the league
     league.add_team();
 
     // Serialize the league as JSON
-    let league_str: String = serde_json::to_string_pretty(&league).unwrap();
+    let league_res = serde_json::to_string_pretty(&league);
+    let league_str: String = match league_res {
+        Ok(league_str) => league_str,
+        Err(error) => return Err(format!("Error serializing league: {}", error)),
+    };
 
     // Write the league back to its file
-    _ = fs::write(&args.league, league_str);
+    let write_res = fs::write(&args.league, league_str);
+    let _ = match write_res {
+        Ok(()) => (),
+        Err(error) => return Err(format!("Error writing league file: {}", error)),
+    };
+    Ok(())
 }
