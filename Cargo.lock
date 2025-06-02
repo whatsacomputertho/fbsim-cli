@@ -201,7 +201,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "fbsim-cli"
-version = "1.0.0-alpha.7"
+version = "1.0.0-alpha.8"
 dependencies = [
  "clap",
  "fbsim-core",
@@ -215,7 +215,8 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-alpha.15"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=league-schedule-gen#5ed72374b8b347fb480769661207d9fb2e61a8b0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d08efba700c9739f4c79f909f330b2c0e49836ef5e440c7b3b5176290f87ba1"
 dependencies = [
  "chrono",
  "lazy_static",
