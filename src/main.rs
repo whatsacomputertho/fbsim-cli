@@ -12,7 +12,10 @@ use crate::cli::game::FbsimGameSubcommand;
 use crate::cli::league::FbsimLeagueSubcommand;
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
 use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
+use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleSubcommand;
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
+use crate::cli::league::season::week::FbsimLeagueSeasonWeekSubcommand;
+use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSubcommand;
 
 use crate::game::benchmark::game_benchmark;
 use crate::game::sim::simulate_game;
@@ -23,9 +26,15 @@ use crate::league::team::list::list_teams;
 use crate::league::season::add::add_season;
 use crate::league::season::get::get_season;
 use crate::league::season::list::list_seasons;
+use crate::league::season::schedule::generate_schedule;
 use crate::league::season::team::add::add_season_team;
 use crate::league::season::team::get::get_season_team;
 use crate::league::season::team::list::list_season_teams;
+use crate::league::season::week::get::get_season_week;
+use crate::league::season::week::list::list_season_weeks;
+use crate::league::season::week::sim::sim_season_week;
+use crate::league::season::week::matchup::get::get_matchup;
+use crate::league::season::week::matchup::sim::sim_matchup;
 
 use clap::Parser;
 
@@ -55,6 +64,18 @@ fn main() {
                     FbsimLeagueSeasonTeamSubcommand::Add(args) => add_season_team(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::Get(args) => get_season_team(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::List(args) => list_season_teams(args.clone())
+                },
+                FbsimLeagueSeasonSubcommand::Schedule{ command } => match command {
+                    FbsimLeagueSeasonScheduleSubcommand::Gen(args) => generate_schedule(args.clone())
+                },
+                FbsimLeagueSeasonSubcommand::Week{ command } => match command {
+                    FbsimLeagueSeasonWeekSubcommand::Get(args) => get_season_week(args.clone()),
+                    FbsimLeagueSeasonWeekSubcommand::List(args) => list_season_weeks(args.clone()),
+                    FbsimLeagueSeasonWeekSubcommand::Sim(args) => sim_season_week(args.clone()),
+                    FbsimLeagueSeasonWeekSubcommand::Matchup{ command } => match command {
+                        FbsimLeagueSeasonWeekMatchupSubcommand::Get(args) => get_matchup(args.clone()),
+                        FbsimLeagueSeasonWeekMatchupSubcommand::Sim(args) => sim_matchup(args.clone())
+                    }
                 }
             }
         }

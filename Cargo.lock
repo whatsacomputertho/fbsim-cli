@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-alpha.15"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=league-schedule-gen#12c23b6688d7a1fc42265ec56c6c07ef0f511c1e"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=league-schedule-gen#5ed72374b8b347fb480769661207d9fb2e61a8b0"
 dependencies = [
  "chrono",
  "lazy_static",

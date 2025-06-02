@@ -1,13 +1,12 @@
 use std::fs;
 
 use fbsim_core::league::League;
-use fbsim_core::league::season::team::LeagueSeasonTeam;
 
-use crate::cli::league::season::team::FbsimLeagueSeasonTeamAddArgs;
+use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSimArgs;
 
 use serde_json;
 
-pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String> {
+pub fn sim_matchup(args: FbsimLeagueSeasonWeekMatchupSimArgs) -> Result<(), String> {
     // Load the league from its file as mutable
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -20,15 +19,15 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Create the league season team and add to the season
-    let season_team = match LeagueSeasonTeam::from_properties(args.name, args.logo, args.offense, args.defense) {
-        Ok(team) => team,
-        Err(error) => return Err(format!("Error creating team: {}", error)),
-    };
-    match league.add_season_team(args.id, season_team) {
+    // TODO: Calculate a summary of the matchup
+    // TODO: Display the summary in a nice looking way (not JSON)
+
+    // Simulate the matchup
+    let mut rng = rand::thread_rng();
+    match league.sim_matchup(args.week, args.matchup, &mut rng) {
         Ok(()) => (),
-        Err(error) => return Err(format!("Failed to add team to season: {}", error)),
-    }
+        Err(error) => return Err(format!("Error simulating matchup: {}", error)),
+    };
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
