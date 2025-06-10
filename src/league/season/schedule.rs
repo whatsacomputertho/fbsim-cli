@@ -4,6 +4,8 @@ use fbsim_core::league::League;
 
 use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleGenArgs;
 
+use rand::{SeedableRng};
+use rand::rngs::StdRng;
 use serde_json;
 
 pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), String> {
@@ -19,7 +21,14 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
     };
 
     // Attempt to generate a schedule for the league
-    let _schedule_gen = match league.generate_schedule() {
+    let mut rng = match args.seed {
+        Some(seed) => StdRng::seed_from_u64(seed),
+        None => match StdRng::from_rng(rand::thread_rng()) {
+            Ok(rng) => rng,
+            Err(error) => return Err(format!("Failed to instantiate rng: {}", error)),
+        },
+    };
+    let _schedule_gen = match league.generate_schedule(Some(args.weeks), &mut rng) {
         Ok(()) => (),
         Err(error) => return Err(format!("Error generating league schedule: {}", error)),
     };

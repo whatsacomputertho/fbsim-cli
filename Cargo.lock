@@ -215,8 +215,7 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-alpha.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d08efba700c9739f4c79f909f330b2c0e49836ef5e440c7b3b5176290f87ba1"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#dc2aacb400f5bd0bf05b052457ecd3fbdcf88fc3"
 dependencies = [
  "chrono",
  "lazy_static",
