@@ -1,6 +1,7 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::LeagueSeasonScheduleOptions;
 
 use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleGenArgs;
 
@@ -20,6 +21,13 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
+    // Initialize schedule gen options
+    let options = LeagueSeasonScheduleOptions{
+        weeks: args.weeks,
+        shift: args.shift,
+        permute: args.permute,
+    };
+
     // Attempt to generate a schedule for the league
     let mut rng = match args.seed {
         Some(seed) => StdRng::seed_from_u64(seed),
@@ -28,7 +36,7 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
             Err(error) => return Err(format!("Failed to instantiate rng: {}", error)),
         },
     };
-    let _schedule_gen = match league.generate_schedule(Some(args.weeks), &mut rng) {
+    let _schedule_gen = match league.generate_schedule(options, &mut rng) {
         Ok(()) => (),
         Err(error) => return Err(format!("Error generating league schedule: {}", error)),
     };
