@@ -26,6 +26,7 @@ use crate::league::team::list::list_teams;
 use crate::league::season::add::add_season;
 use crate::league::season::get::get_season;
 use crate::league::season::list::list_seasons;
+use crate::league::season::sim::sim_season;
 use crate::league::season::schedule::generate_schedule;
 use crate::league::season::team::add::add_season_team;
 use crate::league::season::team::get::get_season_team;
@@ -60,6 +61,7 @@ fn main() {
                 FbsimLeagueSeasonSubcommand::Add(args) => add_season(args.clone()),
                 FbsimLeagueSeasonSubcommand::Get(args) => get_season(args.clone()),
                 FbsimLeagueSeasonSubcommand::List(args) => list_seasons(args.clone()),
+                FbsimLeagueSeasonSubcommand::Sim(args) => sim_season(args.clone()),
                 FbsimLeagueSeasonSubcommand::Team{ command } => match command {
                     FbsimLeagueSeasonTeamSubcommand::Add(args) => add_season_team(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::Get(args) => get_season_team(args.clone()),

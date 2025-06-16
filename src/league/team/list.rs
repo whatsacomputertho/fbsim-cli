@@ -1,12 +1,15 @@
 use std::fs;
+use std::io::{Write, stdout};
 use std::collections::BTreeMap;
 
 use fbsim_core::league::League;
 use fbsim_core::league::team::LeagueTeam;
+use fbsim_core::league::matchup::LeagueMatchups;
 
 use crate::cli::league::team::FbsimLeagueTeamListArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
     // Load the league from its file
@@ -21,20 +24,19 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate each team's performance in the league over time
-    // TODO: Display the results in a table
+    // Display the results in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw, "Team\tRecord\n").map_err(|e| e.to_string())?;
 
     // Get the collection of teams from the league
     let teams: &BTreeMap<usize, LeagueTeam> = league.teams();
+    for (id, _) in teams.iter() {
+        let matchups: LeagueMatchups = league.team_matchups(*id);
 
-    // Serialize the teams as JSON
-    let teams_str_res = serde_json::to_string_pretty(&teams);
-    let teams_str = match teams_str_res {
-        Ok(teams_str) => teams_str,
-        Err(error) => return Err(format!("Error serializing teams: {}", error)),
-    };
+        // TODO: Replace the ID with the most recent team name
 
-    // Print the teams to the console
-    println!("{}", teams_str);
+        write!(&mut tw, "{}\t{}\n", id, matchups.record()).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

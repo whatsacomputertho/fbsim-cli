@@ -1,11 +1,13 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
-use fbsim_core::league::team::LeagueTeam;
+use fbsim_core::league::matchup::LeagueMatchups;
 
 use crate::cli::league::team::FbsimLeagueTeamGetArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn get_team(args: FbsimLeagueTeamGetArgs) -> Result<(), String> {
     // Load the league from its file
@@ -20,23 +22,18 @@ pub fn get_team(args: FbsimLeagueTeamGetArgs) -> Result<(), String> {
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate team performance in the league over time
-    // TODO: Display the team's performance in a nice looking way (not JSON)
+    // TODO: Get the team's most recent name
 
-    // Get a team from the league
-    let team: &LeagueTeam = match league.team(args.team) {
-        Some(team) => team,
-        None => return Err(format!("No team found with ID: {}", args.team)),
-    };
+    // Calculate the team's all-time record
+    let matchups: LeagueMatchups = league.team_matchups(args.team);
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw, "Year\tRecord\n").map_err(|e| e.to_string())?;
 
-    // Serialize the team as JSON
-    let team_str_res = serde_json::to_string_pretty(&team);
-    let team_str = match team_str_res {
-        Ok(team_str) => team_str,
-        Err(error) => return Err(format!("Error serializing team: {}", error)),
-    };
-
-    // Print the team to the console
-    println!("{}", team_str);
+    // Calculate the team's record for each previous season
+    for (year, season) in matchups.matchups().iter() {
+        write!(&mut tw, "{}\t{}\n", year, season.record()).map_err(|e| e.to_string())?;
+    }
+    write!(&mut tw, "Total\t{}\n", matchups.record()).map_err(|e| e.to_string())?;
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

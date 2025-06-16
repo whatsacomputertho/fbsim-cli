@@ -40,12 +40,22 @@ pub struct FbsimLeagueSeasonListArgs {
     pub league: String
 }
 
+/// Simulate the current season of the FootballSim league
+#[derive(Args, Clone)]
+pub struct FbsimLeagueSeasonSimArgs {
+    /// The input filepath for the league
+    #[arg(short='l')]
+    #[arg(long="league")]
+    pub league: String
+}
+
 /// Manage seasons for an existing FootballSim league
 #[derive(Subcommand, Clone)]
 pub enum FbsimLeagueSeasonSubcommand {
     Add(FbsimLeagueSeasonAddArgs),
     Get(FbsimLeagueSeasonGetArgs),
     List(FbsimLeagueSeasonListArgs),
+    Sim(FbsimLeagueSeasonSimArgs),
     Schedule {
         #[command(subcommand)]
         command: FbsimLeagueSeasonScheduleSubcommand
