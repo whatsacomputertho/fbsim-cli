@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-alpha.15"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=team-matchups-record#777cd0bf950767d9be3aa66be041f5c9829907bb"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#f30d9e94d805f9355baa01a25a0de4544d8a4fe1"
 dependencies = [
  "chrono",
  "lazy_static",
