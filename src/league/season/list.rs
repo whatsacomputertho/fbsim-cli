@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 use fbsim_core::league::season::LeagueSeason;
@@ -6,6 +7,7 @@ use fbsim_core::league::season::LeagueSeason;
 use crate::cli::league::season::FbsimLeagueSeasonListArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn list_seasons(args: FbsimLeagueSeasonListArgs) -> Result<(), String> {
     // Load the league from its file
@@ -20,30 +22,35 @@ pub fn list_seasons(args: FbsimLeagueSeasonListArgs) -> Result<(), String> {
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary for each season
-    // TODO: Display the results in a table
-
     // Get the current and past season from the league
     let current_season = league.current_season();
     let past_seasons: &Vec<LeagueSeason> = league.seasons();
 
-    // Serialize the seasons as JSON
-    let current_season_str_res = serde_json::to_string_pretty(&current_season);
-    let current_season_str = match current_season_str_res {
-        Ok(current_season_str) => current_season_str,
-        Err(error) => return Err(format!("Error serializing current season: {}", error)),
-    };
-    let past_seasons_str_res = serde_json::to_string_pretty(&past_seasons);
-    let past_seasons_str = match past_seasons_str_res {
-        Ok(past_seasons_str) => past_seasons_str,
-        Err(error) => return Err(format!("Error serializing past seasons: {}", error)),
-    };
-
-    // Print the seasons to the console
-    println!("Current Season:");
-    println!("{}", current_season_str);
-    println!("");
-    println!("Past Seasons:");
-    println!("{}", past_seasons_str);
+    // Display the season list in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(
+        &mut tw,
+        "Season\tTeams\tWeeks\n"
+    ).map_err(|e| e.to_string())?;
+    match current_season {
+        Some(s) => {
+            write!(
+                &mut tw,
+                "{} (Current)\t{}\t{}\n",
+                s.year(), s.teams().len(), s.weeks().len()
+            ).map_err(|e| e.to_string())?;
+        },
+        None => ()
+    }
+    for season in past_seasons.iter() {
+        write!(
+            &mut tw,
+            "{}\t{}\t{}\n",
+            season.year(),
+            season.teams().len(),
+            season.weeks().len()
+        ).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

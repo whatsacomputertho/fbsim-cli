@@ -1,10 +1,13 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::matchup::LeagueSeasonMatchups;
 
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamListArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), String> {
     // Load the league from its file
@@ -22,6 +25,10 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
     // TODO: Calculate a summary of each team's performance over the season
     // TODO: Display the summary in a nice looking way (not JSON)
 
+    // Display the results in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw, "Team\tRecord\n").map_err(|e| e.to_string())?;
+
     // Get the league season
     let season = match league.season(args.year) {
         Some(season) => season,
@@ -30,15 +37,13 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
 
     // Get the league season teams from the league season
     let teams = season.teams();
+    for (id, team) in teams.iter() {
+        let matchups: LeagueSeasonMatchups = season.team_matchups(*id)?;
 
-    // Serialize the season team as JSON
-    let teams_res = serde_json::to_string_pretty(&teams);
-    let teams_str: String = match teams_res {
-        Ok(teams_str) => teams_str,
-        Err(error) => return Err(format!("Error serializing season team: {}", error)),
-    };
+        // TODO: Replace the ID with the most recent team name
 
-    // Print the team to stdout
-    println!("{}", teams_str);
+        write!(&mut tw, "{}\t{}\n", team.name(), matchups.record()).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

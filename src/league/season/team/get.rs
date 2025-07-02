@@ -1,10 +1,12 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamGetArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String> {
     // Load the league from its file
@@ -19,9 +21,6 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary of the team's performance over the season
-    // TODO: Display the summary in a nice looking way (not JSON)
-
     // Get the league season
     let season = match league.season(args.year) {
         Some(season) => season,
@@ -34,14 +33,37 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
         None => return Err(format!("No team found in season {} with id: {}", args.year, args.id)),
     };
 
-    // Serialize the season team as JSON
-    let team_res = serde_json::to_string_pretty(&team);
-    let team_str: String = match team_res {
-        Ok(team_str) => team_str,
-        Err(error) => return Err(format!("Error serializing season team: {}", error)),
-    };
+    // Get the league season team's matchups from the league season
+    let matchups = season.team_matchups(args.id)?;
 
-    // Print the team to stdout
-    println!("{}", team_str);
+    // Display the results in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw, "Team:\t{}\n", team.name()).map_err(|e| e.to_string())?;
+    write!(&mut tw, "Record:\t{}\n\n", matchups.record()).map_err(|e| e.to_string())?;
+
+    // Display each matchup
+    write!(
+        &mut tw,
+        "Week\tHome Team\tHome Score\tAway Team\tAway Score\n"
+    ).map_err(|e| e.to_string())?;
+    for (i, matchup) in matchups.matchups().iter().enumerate() {
+        match matchup {
+            Some(m) => {
+                let away_team = season.team(*m.away_team()).unwrap().name();
+                let home_team = season.team(*m.home_team()).unwrap().name();
+                write!(
+                    &mut tw, "{}\t{}\t{}\t{}\t{}\n", i+1,
+                    home_team, m.home_score(),
+                    away_team, m.away_score()
+                ).map_err(|e| e.to_string())?;
+            },
+            None => {
+                write!(
+                    &mut tw, "{}\t{}", i+1, "BYE"
+                ).map_err(|e| e.to_string())?;
+            },
+        }
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

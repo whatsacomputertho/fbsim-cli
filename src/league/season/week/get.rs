@@ -1,10 +1,12 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekGetArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String> {
     // Load the league from its file
@@ -19,9 +21,6 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary of the week
-    // TODO: Display the summary in a nice looking way (not JSON)
-
     // Get the league season
     let season = match league.season(args.year) {
         Some(season) => season,
@@ -34,14 +33,21 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
         None => return Err(format!("No week found in season {} with id: {}", args.year, args.week)),
     };
 
-    // Serialize the season week as JSON
-    let week_res = serde_json::to_string_pretty(&week);
-    let week_str: String = match week_res {
-        Ok(week_str) => week_str,
-        Err(error) => return Err(format!("Error serializing season week: {}", error)),
-    };
+    // Display each matchup in the week in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw,"Matchup\tAway Team\tAway Score\tHome Team\tHome Score\n").map_err(|e| e.to_string())?;
+    for (i, matchup) in week.matchups().iter().enumerate() {
+        // Get the team names
+        let away_team = season.team(*matchup.away_team()).unwrap().name();
+        let home_team = season.team(*matchup.home_team()).unwrap().name();
 
-    // Print the week to stdout
-    println!("{}", week_str);
+        // Display the matchup
+        write!(
+            &mut tw,"{}\t{}\t{}\t{}\t{}\n", i,
+            away_team, matchup.away_score(),
+            home_team, matchup.home_score()
+        ).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

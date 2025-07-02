@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 use fbsim_core::league::season::LeagueSeason;
@@ -6,6 +7,7 @@ use fbsim_core::league::season::LeagueSeason;
 use crate::cli::league::season::FbsimLeagueSeasonGetArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
     // Load the league from its file
@@ -20,23 +22,32 @@ pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary of the season
-    // TODO: Display the season summary in a nice looking way (not JSON)
-
     // Get a season from the league
     let season: &LeagueSeason = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
 
-    // Serialize the season as JSON
-    let season_str_res = serde_json::to_string_pretty(&season);
-    let season_str = match season_str_res {
-        Ok(season_str) => season_str,
-        Err(error) => return Err(format!("Error serializing season: {}", error))
-    };
+    // Display the season teams in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw,"Team\tRecord\n").map_err(|e| e.to_string())?;
+    for (id, team) in season.teams().iter() {
+        let matchups = season.team_matchups(*id)?;
+        write!(
+            &mut tw, "{}\t{}\n",
+            team.name(), matchups.record()
+        ).map_err(|e| e.to_string())?;
+    }
 
-    // Print the season to the console
-    println!("{}", season_str);
+    // Display the season weeks in a table
+    write!(&mut tw,"\nWeek\tGames\tSimulated\n").map_err(|e| e.to_string())?;
+    for (i, week) in season.weeks().iter().enumerate() {
+        write!(
+            &mut tw, "{}\t{}\t{}\n", i+1,
+            week.matchups().len(),
+            week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
+        ).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }
