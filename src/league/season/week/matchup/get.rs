@@ -1,10 +1,12 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 
 use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupGetArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), String> {
     // Load the league from its file
@@ -45,14 +47,18 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
         ),
     };
 
-    // Serialize the matchup as JSON
-    let matchup_res = serde_json::to_string_pretty(&matchup);
-    let matchup_str: String = match matchup_res {
-        Ok(matchup_str) => matchup_str,
-        Err(error) => return Err(format!("Error serializing matchup: {}", error)),
-    };
+    // Get the team names
+    let away_team = season.team(*matchup.away_team()).unwrap().name();
+    let home_team = season.team(*matchup.home_team()).unwrap().name();
 
-    // Print the matchup to stdout
-    println!("{}", matchup_str);
+    // Display the matchup in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw,"Away Team\tAway Score\tHome Team\tHome Score\n").map_err(|e| e.to_string())?;
+    write!(
+        &mut tw,"{}\t{}\t{}\t{}\n",
+        away_team, matchup.away_score(),
+        home_team, matchup.home_score()
+    ).map_err(|e| e.to_string())?;
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

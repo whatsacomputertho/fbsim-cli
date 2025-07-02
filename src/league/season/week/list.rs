@@ -1,10 +1,12 @@
 use std::fs;
+use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekListArgs;
 
 use serde_json;
+use tabwriter::TabWriter;
 
 pub fn list_season_weeks(args: FbsimLeagueSeasonWeekListArgs) -> Result<(), String> {
     // Load the league from its file
@@ -19,26 +21,22 @@ pub fn list_season_weeks(args: FbsimLeagueSeasonWeekListArgs) -> Result<(), Stri
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary of each week
-    // TODO: Display the summary in a nice looking way (not JSON)
-
     // Get the league season
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
 
-    // Get the league season weeks from the league season
-    let weeks = season.weeks();
-
-    // Serialize the season weeks as JSON
-    let weeks_res = serde_json::to_string_pretty(&weeks);
-    let weeks_str: String = match weeks_res {
-        Ok(weeks_str) => weeks_str,
-        Err(error) => return Err(format!("Error serializing season weeks: {}", error)),
-    };
-
-    // Print the weeks to stdout
-    println!("{}", weeks_str);
+    // Display the season weeks in a table
+    let mut tw = TabWriter::new(stdout());
+    write!(&mut tw,"Week\tGames\tSimulated\n").map_err(|e| e.to_string())?;
+    for (i, week) in season.weeks().iter().enumerate() {
+        write!(
+            &mut tw, "{}\t{}\t{}\n", i+1,
+            week.matchups().len(),
+            week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
+        ).map_err(|e| e.to_string())?;
+    }
+    tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

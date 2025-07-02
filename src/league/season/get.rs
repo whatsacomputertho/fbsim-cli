@@ -43,7 +43,7 @@ pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
     write!(&mut tw,"\nWeek\tGames\tSimulated\n").map_err(|e| e.to_string())?;
     for (i, week) in season.weeks().iter().enumerate() {
         write!(
-            &mut tw, "{}\t{}\t{}\n", i,
+            &mut tw, "{}\t{}\t{}\n", i+1,
             week.matchups().len(),
             week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
         ).map_err(|e| e.to_string())?;
