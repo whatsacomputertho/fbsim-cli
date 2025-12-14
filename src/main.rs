@@ -9,6 +9,8 @@ use crate::cli::fbsim::{
     FbsimSubcommand
 };
 use crate::cli::game::FbsimGameSubcommand;
+use crate::cli::game::play::FbsimGamePlaySubcommand;
+use crate::cli::game::score::FbsimGameScoreSubcommand;
 use crate::cli::league::FbsimLeagueSubcommand;
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
 use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
@@ -17,8 +19,9 @@ use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekSubcommand;
 use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSubcommand;
 
-use crate::game::benchmark::game_benchmark;
-use crate::game::sim::simulate_game;
+use crate::game::play::sim::play_sim;
+use crate::game::score::benchmark::final_score_sim_benchmark;
+use crate::game::score::sim::final_score_sim;
 use crate::league::create::create_league;
 use crate::league::team::add::add_team;
 use crate::league::team::get::get_team;
@@ -47,8 +50,13 @@ fn main() {
     let command = fbdb_cli.command();
     let command_res = match &command {
         FbsimSubcommand::Game { command } => match command {
-            FbsimGameSubcommand::Sim(args) => Ok(simulate_game(args.clone())),
-            FbsimGameSubcommand::Benchmark(args) => Ok(game_benchmark(args.clone()))
+            FbsimGameSubcommand::Play { command } => match command {
+                FbsimGamePlaySubcommand::Sim(args) => Ok(play_sim(args.clone()))
+            },
+            FbsimGameSubcommand::Score { command } => match command {
+                FbsimGameScoreSubcommand::Sim(args) => Ok(final_score_sim(args.clone())),
+                FbsimGameScoreSubcommand::Benchmark(args) => Ok(final_score_sim_benchmark(args.clone()))
+            }
         },
         FbsimSubcommand::League { command } => match command {
             FbsimLeagueSubcommand::Create(args) => create_league(args.clone()),

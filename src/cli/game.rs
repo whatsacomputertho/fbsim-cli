@@ -1,34 +1,20 @@
-use clap::{Subcommand, Args};
+pub mod score;
+pub mod play;
 
-/// The sim subcommand arguments
-#[derive(Args, Clone)]
-pub struct FbsimGameSimArgs {
-    /// The format to output
-    #[arg(short='o')]
-    #[arg(long="output")]
-    pub output_format: Option<String>,
+use clap::Subcommand;
 
-    /// The file to write to
-    #[arg(short='f')]
-    #[arg(long="file")]
-    pub output_file: Option<String>,
-
-    /// A path to a file specifying the game's home team
-    #[arg(long="home")]
-    pub home: String,
-
-    /// A path to a file specifying the game's away team
-    #[arg(long="away")]
-    pub away: String,
-}
-
-/// The benchmark subcommand arguments
-#[derive(Args, Clone)]
-pub struct FbsimGameBenchmarkArgs {}
+use crate::cli::game::play::FbsimGamePlaySubcommand;
+use crate::cli::game::score::FbsimGameScoreSubcommand;
 
 /// The subcommands of the fbsim game command
 #[derive(Subcommand, Clone)]
 pub enum FbsimGameSubcommand {
-    Sim(FbsimGameSimArgs),
-    Benchmark(FbsimGameBenchmarkArgs)
+    Play {
+        #[command(subcommand)]
+        command: FbsimGamePlaySubcommand
+    },
+    Score {
+        #[command(subcommand)]
+        command: FbsimGameScoreSubcommand
+    }
 }

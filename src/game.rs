@@ -1,2 +1,2 @@
-pub mod benchmark;
-pub mod sim;
+pub mod play;
+pub mod score;
