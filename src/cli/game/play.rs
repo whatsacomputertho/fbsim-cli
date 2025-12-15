@@ -13,6 +13,10 @@ pub struct FbsimGamePlaySimArgs {
     #[arg(long="file")]
     pub output_file: Option<String>,
 
+    /// A path to a file specifying the current game context
+    #[arg(long="context")]
+    pub context: Option<String>,
+
     /// A path to a file specifying the game's home team
     #[arg(long="home")]
     pub home: String,
@@ -20,10 +24,6 @@ pub struct FbsimGamePlaySimArgs {
     /// A path to a file specifying the game's away team
     #[arg(long="away")]
     pub away: String,
-
-    /// A path to a file specifying the current game context
-    #[arg(long="context")]
-    pub context: String,
 }
 
 /// The fbsim game play subcommands

@@ -19,6 +19,7 @@ use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekSubcommand;
 use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSubcommand;
 
+use crate::game::game_sim;
 use crate::game::play::sim::play_sim;
 use crate::game::score::benchmark::final_score_sim_benchmark;
 use crate::game::score::sim::final_score_sim;
@@ -50,6 +51,7 @@ fn main() {
     let command = fbdb_cli.command();
     let command_res = match &command {
         FbsimSubcommand::Game { command } => match command {
+            FbsimGameSubcommand::Sim(args) => Ok(game_sim(args.clone())),
             FbsimGameSubcommand::Play { command } => match command {
                 FbsimGamePlaySubcommand::Sim(args) => Ok(play_sim(args.clone()))
             },

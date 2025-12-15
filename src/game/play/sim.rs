@@ -20,9 +20,10 @@ pub fn play_sim(args: FbsimGamePlaySimArgs) {
     ).unwrap();
 
     // Load the context from its file
-    let context: GameContext = serde_json::from_str(
-        &fs::read_to_string(&args.context).unwrap()
-    ).unwrap();
+    let context: GameContext = match &args.context {
+        Some(x) => serde_json::from_str(&fs::read_to_string(x).unwrap()).unwrap(),
+        None => GameContext::new()
+    };
 
     // Instantiate the simulator
     let play_sim = PlaySimulator::new();
