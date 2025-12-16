@@ -201,7 +201,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "fbsim-cli"
-version = "1.0.0-alpha.8"
+version = "1.0.0-beta.1"
 dependencies = [
  "clap",
  "fbsim-core",
@@ -214,8 +214,8 @@ dependencies = [
 
 [[package]]
 name = "fbsim-core"
-version = "1.0.0-alpha.15"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#f30d9e94d805f9355baa01a25a0de4544d8a4fe1"
+version = "1.0.0-beta.1"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#a82684870785b79ff6e7598cb2ff704081fa8d0a"
 dependencies = [
  "chrono",
  "lazy_static",

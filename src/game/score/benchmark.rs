@@ -1,18 +1,18 @@
 use std::collections::BTreeMap;
 use std::io::{Write, stdout};
 
-use crate::cli::game::FbsimGameBenchmarkArgs;
+use crate::cli::game::score::FbsimGameScoreBenchmarkArgs;
 
-use fbsim_core::sim::BoxScoreSimulator;
+use fbsim_core::game::score::FinalScoreSimulator;
 use fbsim_core::team::FootballTeam;
 
 use indicatif::ProgressBar;
 use tabwriter::TabWriter;
 use statrs::statistics::Statistics;
 
-pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
+pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
     // Instantiate the simulator and RNG
-    let box_score_sim = BoxScoreSimulator::new();
+    let final_score_sim = FinalScoreSimulator::new();
     let mut rng = rand::thread_rng();
 
     // Instantiate 2D arrays to store the win and tie propotions
@@ -42,44 +42,44 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
     // win and tie proportions by skill differential
     for i in 0..11 {
         // Set the home offense and away defense
-        let home_off = ((10 - i) * 10) as i32;
-        let away_def = (i * 10) as i32;
+        let home_off = ((10 - i) * 10) as u32;
+        let away_def = (i * 10) as u32;
         for j in 0..11 {
             // Set the away offense and home defense
-            let away_off = ((10 - j) * 10) as i32;
-            let home_def = (j * 10) as i32;
+            let away_off = ((10 - j) * 10) as u32;
+            let home_def = (j * 10) as u32;
 
             // Create the home and away teams
-            let home_team = FootballTeam::from_properties(
+            let home_team = FootballTeam::from_overalls(
                 "Home Team",
                 home_off,
                 home_def
             ).unwrap();
-            let away_team = FootballTeam::from_properties(
+            let away_team = FootballTeam::from_overalls(
                 "Away Team",
                 away_off,
                 away_def
             ).unwrap();
             for k in 1..10001 {
                 // Simulate the game
-                let box_score = box_score_sim.sim(
+                let score = final_score_sim.sim(
                     &home_team,
                     &away_team,
                     &mut rng
                 ).unwrap();
 
                 // Track the observed final score in the score frequency map
-                let home_score = box_score.home_score();
-                let away_score = box_score.away_score();
+                let home_score = score.home_score();
+                let away_score = score.away_score();
                 let curr_home_score_count = score_freq.get(&home_score).unwrap();
                 score_freq.insert(home_score, curr_home_score_count + 1_i32);
                 let curr_away_score_count = score_freq.get(&away_score).unwrap();
                 score_freq.insert(away_score, curr_away_score_count + 1_i32);
 
                 // Track the observed home and away scores in the home/away score maps
-                let diff_home_scores: &mut Vec<f64> = home_scores.get_mut(&(home_off - away_def)).unwrap();
+                let diff_home_scores: &mut Vec<f64> = home_scores.get_mut(&(home_off as i32 - away_def as i32)).unwrap();
                 diff_home_scores.push(home_score as f64);
-                let diff_away_scores: &mut Vec<f64> = away_scores.get_mut(&(away_off - home_def)).unwrap();
+                let diff_away_scores: &mut Vec<f64> = away_scores.get_mut(&(away_off as i32 - home_def as i32)).unwrap();
                 diff_away_scores.push(away_score as f64);
 
                 // Decide whether this was a tie, or home win / away win

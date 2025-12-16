@@ -24,11 +24,11 @@ pub struct FbsimLeagueSeasonTeamAddArgs {
 
     /// The team's offensive overall
     #[arg(long="offense")]
-    pub offense: usize,
+    pub offense: u32,
 
     /// The team's defensive overall
     #[arg(long="defense")]
-    pub defense: usize,
+    pub defense: u32,
 }
 
 /// Display a team from a FootballSim season
