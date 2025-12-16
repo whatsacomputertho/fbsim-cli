@@ -1,12 +1,10 @@
 use std::fs;
-use std::str::FromStr;
 
 use fbsim_core::game::play::PlaySimulator;
 use fbsim_core::game::context::GameContext;
 use fbsim_core::team::FootballTeam;
 
 use crate::cli::game::play::FbsimGamePlaySimArgs;
-use crate::cli::output::OutputFormat;
 
 use serde_json;
 
@@ -30,7 +28,7 @@ pub fn play_sim(args: FbsimGamePlaySimArgs) {
 
     // Instantiate an RNG and simulate
     let mut rng = rand::thread_rng();
-    let (play, new_context) = play_sim.sim(
+    let (play, _new_context) = play_sim.sim(
         &home_team,
         &away_team,
         context,
