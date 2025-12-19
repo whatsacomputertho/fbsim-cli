@@ -1,8 +1,10 @@
+pub mod drive;
 pub mod score;
 pub mod play;
 
 use clap::{Args, Subcommand};
 
+use crate::cli::game::drive::FbsimGameDriveSubcommand;
 use crate::cli::game::play::FbsimGamePlaySubcommand;
 use crate::cli::game::score::FbsimGameScoreSubcommand;
 
@@ -16,6 +18,10 @@ pub struct FbsimGameSimArgs {
     /// A path to a file specifying the game's away team
     #[arg(long="away")]
     pub away: String,
+
+    /// Whether to use the play-by-play or drive simulator
+    #[arg(long="play-by-play")]
+    pub play_by_play: Option<bool>
 }
 
 /// The benchmark subcommand arguments
@@ -30,6 +36,10 @@ pub enum FbsimGameSubcommand {
     Play {
         #[command(subcommand)]
         command: FbsimGamePlaySubcommand
+    },
+    Drive {
+        #[command(subcommand)]
+        command: FbsimGameDriveSubcommand
     },
     Score {
         #[command(subcommand)]

@@ -1,4 +1,5 @@
 pub mod play;
+pub mod drive;
 pub mod score;
 
 use std::fs;
@@ -9,6 +10,7 @@ use indicatif::ProgressBar;
 use statrs::statistics::Statistics;
 use tabwriter::TabWriter;
 
+use fbsim_core::game::play::DriveSimulator;
 use fbsim_core::game::play::PlaySimulator;
 use fbsim_core::game::context::GameContext;
 use fbsim_core::team::FootballTeam;
@@ -25,21 +27,41 @@ pub fn game_sim(args: FbsimGameSimArgs) {
         &fs::read_to_string(&args.away).unwrap()
     ).unwrap();
 
-    // Initialize a new context, simulator, and RNG
+    // Determine which simulator to use
+    let pbp_sim: bool = match args.play_by_play {
+        Some(b) => b,
+        None => false
+    };
+
+    // Initialize a new context and RNG
     let mut context: GameContext = GameContext::new();
-    let play_sim = PlaySimulator::new();
     let mut rng = rand::thread_rng();
 
     // Simulate until the game is over
     let mut game_over: bool = false;
-    while !game_over {
-        game_over = *context.game_over();
-        if !game_over {
-            let (play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
-            println!("{}", play);
-            context = new_context;
-        } else {
-            println!("{} Game over", context);
+    if pbp_sim {
+        let play_sim = PlaySimulator::new();
+        while !game_over {
+            game_over = *context.game_over();
+            if !game_over {
+                let (play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
+                println!("{}", play);
+                context = new_context;
+            } else {
+                println!("{} Game over", context);
+            }
+        }
+    } else {
+        let drive_sim = DriveSimulator::new();
+        while !game_over {
+            game_over = *context.game_over();
+            if !game_over {
+                let (drive, new_context) = drive_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
+                println!("{}\n", drive);
+                context = new_context;
+            } else {
+                println!("{} Game over", context);
+            }
         }
     }
 }
