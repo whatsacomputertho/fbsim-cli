@@ -9,6 +9,7 @@ use crate::cli::fbsim::{
     FbsimSubcommand
 };
 use crate::cli::game::FbsimGameSubcommand;
+use crate::cli::game::drive::FbsimGameDriveSubcommand;
 use crate::cli::game::play::FbsimGamePlaySubcommand;
 use crate::cli::game::score::FbsimGameScoreSubcommand;
 use crate::cli::league::FbsimLeagueSubcommand;
@@ -21,6 +22,8 @@ use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSubco
 
 use crate::game::game_sim;
 use crate::game::game_benchmark;
+use crate::game::drive::sim::drive_sim;
+use crate::game::play::benchmark::play_benchmark;
 use crate::game::play::sim::play_sim;
 use crate::game::score::benchmark::final_score_sim_benchmark;
 use crate::game::score::sim::final_score_sim;
@@ -54,8 +57,12 @@ fn main() {
         FbsimSubcommand::Game { command } => match command {
             FbsimGameSubcommand::Benchmark(args) => Ok(game_benchmark(args.clone())),
             FbsimGameSubcommand::Sim(args) => Ok(game_sim(args.clone())),
+            FbsimGameSubcommand::Drive { command } => match command {
+                FbsimGameDriveSubcommand::Sim(args) => Ok(drive_sim(args.clone()))
+            },
             FbsimGameSubcommand::Play { command } => match command {
-                FbsimGamePlaySubcommand::Sim(args) => Ok(play_sim(args.clone()))
+                FbsimGamePlaySubcommand::Sim(args) => Ok(play_sim(args.clone())),
+                FbsimGamePlaySubcommand::Benchmark(args) => Ok(play_benchmark(args.clone())),
             },
             FbsimGameSubcommand::Score { command } => match command {
                 FbsimGameScoreSubcommand::Sim(args) => Ok(final_score_sim(args.clone())),

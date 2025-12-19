@@ -2,7 +2,7 @@ use clap::{Args, Subcommand};
 
 /// The sim subcommand arguments
 #[derive(Args, Clone)]
-pub struct FbsimGamePlaySimArgs {
+pub struct FbsimGameDriveSimArgs {
     /// The format to output
     #[arg(short='o')]
     #[arg(long="output")]
@@ -26,13 +26,8 @@ pub struct FbsimGamePlaySimArgs {
     pub away: String,
 }
 
-/// The benchmark subcommand arguments
-#[derive(Args, Clone)]
-pub struct FbsimGamePlayBenchmarkArgs {}
-
-/// The fbsim game play subcommands
+/// The fbsim game drive subcommands
 #[derive(Subcommand, Clone)]
-pub enum FbsimGamePlaySubcommand {
-    Sim(FbsimGamePlaySimArgs),
-    Benchmark(FbsimGamePlayBenchmarkArgs)
+pub enum FbsimGameDriveSubcommand {
+    Sim(FbsimGameDriveSimArgs)
 }
