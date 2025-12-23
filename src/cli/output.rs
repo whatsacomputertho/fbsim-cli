@@ -6,6 +6,7 @@ pub enum OutputFormat {
     Json,
     Default
 }
+
 impl FromStr for OutputFormat {
     type Err = ();
     fn from_str(input: &str) -> Result<OutputFormat, Self::Err> {
@@ -15,6 +16,7 @@ impl FromStr for OutputFormat {
         }
     }
 }
+
 impl std::fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let fmt_str = match self {

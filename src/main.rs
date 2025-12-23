@@ -55,18 +55,18 @@ fn main() {
     let command = fbdb_cli.command();
     let command_res = match &command {
         FbsimSubcommand::Game { command } => match command {
-            FbsimGameSubcommand::Benchmark(args) => Ok(game_benchmark(args.clone())),
-            FbsimGameSubcommand::Sim(args) => Ok(game_sim(args.clone())),
+            FbsimGameSubcommand::Benchmark(args) => game_benchmark(args.clone()),
+            FbsimGameSubcommand::Sim(args) => game_sim(args.clone()),
             FbsimGameSubcommand::Drive { command } => match command {
-                FbsimGameDriveSubcommand::Sim(args) => Ok(drive_sim(args.clone()))
+                FbsimGameDriveSubcommand::Sim(args) => drive_sim(args.clone())
             },
             FbsimGameSubcommand::Play { command } => match command {
-                FbsimGamePlaySubcommand::Sim(args) => Ok(play_sim(args.clone())),
-                FbsimGamePlaySubcommand::Benchmark(args) => Ok(play_benchmark(args.clone())),
+                FbsimGamePlaySubcommand::Sim(args) => play_sim(args.clone()),
+                FbsimGamePlaySubcommand::Benchmark(args) => play_benchmark(args.clone()),
             },
             FbsimGameSubcommand::Score { command } => match command {
-                FbsimGameScoreSubcommand::Sim(args) => Ok(final_score_sim(args.clone())),
-                FbsimGameScoreSubcommand::Benchmark(args) => Ok(final_score_sim_benchmark(args.clone()))
+                FbsimGameScoreSubcommand::Sim(args) => final_score_sim(args.clone()),
+                FbsimGameScoreSubcommand::Benchmark(args) => final_score_sim_benchmark(args.clone())
             }
         },
         FbsimSubcommand::League { command } => match command {

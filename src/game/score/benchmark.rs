@@ -10,7 +10,7 @@ use indicatif::ProgressBar;
 use tabwriter::TabWriter;
 use statrs::statistics::Statistics;
 
-pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
+pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(), String> {
     // Instantiate the simulator and RNG
     let final_score_sim = FinalScoreSimulator::new();
     let mut rng = rand::thread_rng();
@@ -20,9 +20,9 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
     let mut tie_props = [[0.0_f64; 11]; 11];
 
     // Instantiate zeroed BTreeMap to store the score frequencies
-    let mut score_freq: BTreeMap<i32, i32> = BTreeMap::new();
+    let mut score_freq: BTreeMap<u32, u32> = BTreeMap::new();
     for i in 0..100 {
-        score_freq.insert(i as i32, 0_i32);
+        score_freq.insert(i as u32, 0_u32);
     }
 
     // Instantiate zeroed BTreeMaps to store the home and away scores
@@ -52,11 +52,13 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
             // Create the home and away teams
             let home_team = FootballTeam::from_overalls(
                 "Home Team",
+                "AWAY",
                 home_off,
                 home_def
             ).unwrap();
             let away_team = FootballTeam::from_overalls(
                 "Away Team",
+                "AWAY",
                 away_off,
                 away_def
             ).unwrap();
@@ -72,9 +74,9 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
                 let home_score = score.home_score();
                 let away_score = score.away_score();
                 let curr_home_score_count = score_freq.get(&home_score).unwrap();
-                score_freq.insert(home_score, curr_home_score_count + 1_i32);
+                score_freq.insert(home_score, curr_home_score_count + 1_u32);
                 let curr_away_score_count = score_freq.get(&away_score).unwrap();
-                score_freq.insert(away_score, curr_away_score_count + 1_i32);
+                score_freq.insert(away_score, curr_away_score_count + 1_u32);
 
                 // Track the observed home and away scores in the home/away score maps
                 let diff_home_scores: &mut Vec<f64> = home_scores.get_mut(&(home_off as i32 - away_def as i32)).unwrap();
@@ -185,5 +187,6 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) {
     println!("Score frequency:");
     write!(&mut tw, "{}", &score_freq_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("")
+    println!("");
+    Ok(())
 }

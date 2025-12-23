@@ -11,6 +11,11 @@ use crate::cli::game::score::FbsimGameScoreSubcommand;
 /// The sim subcommand arguments
 #[derive(Args, Clone)]
 pub struct FbsimGameSimArgs {
+    /// The format to output
+    #[arg(short='o')]
+    #[arg(long="output")]
+    pub output_format: Option<String>,
+    
     /// A path to a file specifying the game's home team
     #[arg(long="home")]
     pub home: String,
