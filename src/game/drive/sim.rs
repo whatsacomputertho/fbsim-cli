@@ -72,6 +72,7 @@ pub fn drive_sim(args: FbsimGameDriveSimArgs) -> Result<(), String> {
             .home_team_short(home_team.short_name())
             .away_team_short(away_team.short_name())
             .home_possession(!home_opening_kickoff)
+            .home_positive_direction(!home_opening_kickoff)
             .home_opening_kickoff(home_opening_kickoff)
             .build()
             .unwrap()

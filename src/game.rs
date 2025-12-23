@@ -176,8 +176,9 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
                 // Simulate the game
                 let home_opening_kickoff: bool = rng.gen::<bool>();
                 let mut context: GameContext = GameContextBuilder::new()
-                    .home_opening_kickoff(home_opening_kickoff)
                     .home_possession(!home_opening_kickoff)
+                    .home_positive_direction(!home_opening_kickoff)
+                    .home_opening_kickoff(home_opening_kickoff)
                     .build()
                     .unwrap();
                 let mut game_over: bool = false;
