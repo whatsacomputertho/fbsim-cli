@@ -5,27 +5,42 @@ pub mod score;
 use std::fs;
 use std::collections::BTreeMap;
 use std::io::{stdout, Write};
+use std::str::FromStr;
 
 use indicatif::ProgressBar;
 use statrs::statistics::Statistics;
 use tabwriter::TabWriter;
+use rand::Rng;
 
 use fbsim_core::game::play::DriveSimulator;
 use fbsim_core::game::play::PlaySimulator;
-use fbsim_core::game::context::GameContext;
+use fbsim_core::game::context::{GameContext, GameContextBuilder};
 use fbsim_core::team::FootballTeam;
 
+use crate::cli::output::OutputFormat;
 use crate::cli::game::FbsimGameBenchmarkArgs;
 use crate::cli::game::FbsimGameSimArgs;
 
-pub fn game_sim(args: FbsimGameSimArgs) {
+pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
     // Load the home and away teams from their files
-    let home_team: FootballTeam = serde_json::from_str(
-        &fs::read_to_string(&args.home).unwrap()
-    ).unwrap();
-    let away_team: FootballTeam = serde_json::from_str(
-        &fs::read_to_string(&args.away).unwrap()
-    ).unwrap();
+    let home_team_file_res = &fs::read_to_string(&args.home);
+    let home_team_file = match home_team_file_res {
+        Ok(file) => file,
+        Err(e) => return Err(format!("Error loading home team file: {}", e)),
+    };
+    let home_team: FootballTeam = match serde_json::from_str(home_team_file) {
+        Ok(team) => team,
+        Err(e) => return Err(format!("Error loading home team: {}", e)),
+    };
+    let away_team_file_res = &fs::read_to_string(&args.away);
+    let away_team_file = match away_team_file_res {
+        Ok(file) => file,
+        Err(e) => return Err(format!("Error loading away team file: {}", e)),
+    };
+    let away_team: FootballTeam = match serde_json::from_str(away_team_file) {
+        Ok(team) => team,
+        Err(e) => return Err(format!("Error loading away team: {}", e)),
+    };
 
     // Determine which simulator to use
     let pbp_sim: bool = match args.play_by_play {
@@ -34,18 +49,41 @@ pub fn game_sim(args: FbsimGameSimArgs) {
     };
 
     // Initialize a new context and RNG
-    let mut context: GameContext = GameContext::new();
     let mut rng = rand::thread_rng();
+    let home_opening_kickoff: bool = rng.gen::<bool>();
+    let mut context: GameContext = GameContextBuilder::new()
+        .home_team_short(home_team.short_name())
+        .away_team_short(away_team.short_name())
+        .home_possession(!home_opening_kickoff)
+        .home_positive_direction(!home_opening_kickoff)
+        .home_opening_kickoff(home_opening_kickoff)
+        .build()
+        .unwrap();
 
     // Simulate until the game is over
     let mut game_over: bool = false;
     if pbp_sim {
         let play_sim = PlaySimulator::new();
         while !game_over {
-            game_over = *context.game_over();
+            game_over = context.game_over();
             if !game_over {
                 let (play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
-                println!("{}", play);
+
+                // Serialize the play result as a string based on the given output format
+                let output_format = OutputFormat::from_str(
+                    &args.output_format.clone().unwrap_or(String::from(""))
+                ).unwrap();
+                let play_str: String = match output_format {
+                    OutputFormat::Json => {
+                        serde_json::to_string_pretty(&play).unwrap()
+                    },
+                    OutputFormat::Default => {
+                        format!("{}", play)
+                    }
+                };
+                println!("{}", play_str);
+
+                // Update the context
                 context = new_context;
             } else {
                 println!("{} Game over", context);
@@ -54,19 +92,35 @@ pub fn game_sim(args: FbsimGameSimArgs) {
     } else {
         let drive_sim = DriveSimulator::new();
         while !game_over {
-            game_over = *context.game_over();
+            game_over = context.game_over();
             if !game_over {
                 let (drive, new_context) = drive_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
-                println!("{}\n", drive);
+
+                // Serialize the play result as a string based on the given output format
+                let output_format = OutputFormat::from_str(
+                    &args.output_format.clone().unwrap_or(String::from(""))
+                ).unwrap();
+                let drive_str: String = match output_format {
+                    OutputFormat::Json => {
+                        serde_json::to_string_pretty(&drive).unwrap()
+                    },
+                    OutputFormat::Default => {
+                        format!("{}", drive)
+                    }
+                };
+                println!("{}\n", drive_str);
+
+                // Update the context
                 context = new_context;
             } else {
                 println!("{} Game over", context);
             }
         }
     }
+    Ok(())
 }
 
-pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
+pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
     // Instantiate the simulator and RNG
     let play_sim = PlaySimulator::new();
     let mut rng = rand::thread_rng();
@@ -92,7 +146,7 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
     }
 
     // Instantiate a progress bar for benchmark progress
-    let progress_bar = ProgressBar::new(11 * 11 * 10000);
+    let progress_bar = ProgressBar::new(11 * 11 * 1000);
 
     // Run many game simulations and track the observed
     // win and tie proportions by skill differential
@@ -108,20 +162,27 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
             // Create the home and away teams
             let home_team = FootballTeam::from_overalls(
                 "Home Team",
+                "HOME",
                 home_off,
                 home_def
             ).unwrap();
             let away_team = FootballTeam::from_overalls(
                 "Away Team",
+                "AWAY",
                 away_off,
                 away_def
             ).unwrap();
-            for k in 1..10001 {
+            for k in 1..1001 {
                 // Simulate the game
-                let mut context: GameContext = GameContext::new();
+                let home_opening_kickoff: bool = rng.gen::<bool>();
+                let mut context: GameContext = GameContextBuilder::new()
+                    .home_opening_kickoff(home_opening_kickoff)
+                    .home_possession(!home_opening_kickoff)
+                    .build()
+                    .unwrap();
                 let mut game_over: bool = false;
                 while !game_over {
-                    game_over = *context.game_over();
+                    game_over = context.game_over();
                     if !game_over {
                         let (_play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
                         context = new_context;
@@ -129,8 +190,8 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
                 }
 
                 // Track the observed final score in the score frequency map
-                let home_score = *context.home_score();
-                let away_score = *context.away_score();
+                let home_score = context.home_score();
+                let away_score = context.away_score();
                 let curr_home_score_count = score_freq.get(&home_score).unwrap();
                 score_freq.insert(home_score, curr_home_score_count + 1_u32);
                 let curr_away_score_count = score_freq.get(&away_score).unwrap();
@@ -245,5 +306,6 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) {
     println!("Score frequency:");
     write!(&mut tw, "{}", &score_freq_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("")
+    println!("");
+    Ok(())
 }

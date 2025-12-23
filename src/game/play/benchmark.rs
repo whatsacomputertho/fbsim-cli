@@ -12,7 +12,7 @@ use indicatif::ProgressBar;
 use tabwriter::TabWriter;
 use statrs::statistics::Statistics;
 
-pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
+pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
     // Instantiate the simulator and RNG
     let play_sim = PlaySimulator::new();
     let mut rng = rand::thread_rng();
@@ -34,6 +34,8 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
     let mut punt_return_yards_yl: BTreeMap<u32, Vec<f64>> = BTreeMap::new();
     let mut kickoff_distance: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
     let mut kick_return_yards: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
+    let mut play_durations: Vec<f64> = Vec::new();
+    let mut between_play_durations: Vec<f64> = Vec::new();
     for i in 0..11 {
         let off = ((10 - i) * 10) as i32;
         let def = (i * 10) as i32;
@@ -75,11 +77,13 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
             // Create the home and away teams
             let home_team = FootballTeam::from_overalls(
                 "Home Team",
+                "HOME",
                 home_off,
                 home_def
             ).unwrap();
             let away_team = FootballTeam::from_overalls(
                 "Away Team",
+                "AWAY",
                 away_off,
                 away_def
             ).unwrap();
@@ -88,12 +92,19 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
                 let mut context: GameContext = GameContext::new();
                 let mut game_over: bool = false;
                 while !game_over {
-                    game_over = *context.game_over();
+                    game_over = context.game_over();
                     if !game_over {
                         let (play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
                         let play_result = play.result();
                         
                         // Update statistic vecs after each play
+                        play_durations.push(play_result.play_duration() as f64);
+                        match play.post_play() {
+                            PlayTypeResult::BetweenPlay(res) => {
+                                between_play_durations.push(res.duration() as f64);
+                            },
+                            _ => {}
+                        }
                         match play_result {
                             PlayTypeResult::Run(_) => {
                                 let diff_rushes: &mut Vec<f64> = rushes.get_mut(&skill_diff).unwrap();
@@ -180,6 +191,38 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
             }
         }
     }
+
+    // Duration
+    println!("");
+    println!("############");
+    println!("# Duration #");
+    println!("############");
+
+    // Display mean, standard deviation play duration
+    let mut tw = TabWriter::new(stdout());
+    let mut duration_lines = String::from("Mean Duration\tStd Duration");
+    let mean = play_durations.clone().mean();
+    let std = play_durations.clone().std_dev();
+    let duration_line = format!("{:.4}\t{:.4}", mean, std);
+    duration_lines = duration_lines + "\n" + &duration_line;
+    println!("");
+    println!("Play duration distribution:");
+    write!(&mut tw, "{}", &duration_lines).unwrap();
+    tw.flush().unwrap();
+    println!("");
+
+    // Display mean, standard deviation post-play duration
+    let mut tw = TabWriter::new(stdout());
+    let mut duration_lines = String::from("Mean Duration\tStd Duration");
+    let mean = between_play_durations.clone().mean();
+    let std = between_play_durations.clone().std_dev();
+    let duration_line = format!("{:.4}\t{:.4}", mean, std);
+    duration_lines = duration_lines + "\n" + &duration_line;
+    println!("");
+    println!("Post-play duration distribution:");
+    write!(&mut tw, "{}", &duration_lines).unwrap();
+    tw.flush().unwrap();
+    println!("");
 
     // Rushing
     println!("");
@@ -444,4 +487,5 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) {
     write!(&mut tw, "{}", &int_lines).unwrap();
     tw.flush().unwrap();
     println!("");
+    Ok(())
 }

@@ -17,6 +17,10 @@ pub struct FbsimGameDriveSimArgs {
     #[arg(long="context")]
     pub context: Option<String>,
 
+    /// Whether to overwrite the context with the new context
+    #[arg(long="update-context")]
+    pub update_context: Option<bool>,
+
     /// A path to a file specifying the game's home team
     #[arg(long="home")]
     pub home: String,
