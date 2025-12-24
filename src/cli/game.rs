@@ -23,10 +23,6 @@ pub struct FbsimGameSimArgs {
     /// A path to a file specifying the game's away team
     #[arg(long="away")]
     pub away: String,
-
-    /// Whether to use the play-by-play or drive simulator
-    #[arg(long="play-by-play")]
-    pub play_by_play: Option<bool>
 }
 
 /// The benchmark subcommand arguments

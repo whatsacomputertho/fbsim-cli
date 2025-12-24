@@ -5,19 +5,19 @@ pub mod score;
 use std::fs;
 use std::collections::BTreeMap;
 use std::io::{stdout, Write};
-use std::str::FromStr;
+use std::{thread, time};
 
+use crossterm::{terminal, cursor, QueueableCommand};
 use indicatif::ProgressBar;
 use statrs::statistics::Statistics;
 use tabwriter::TabWriter;
 use rand::Rng;
 
-use fbsim_core::game::play::DriveSimulator;
-use fbsim_core::game::play::PlaySimulator;
+use fbsim_core::game::play::{Game, GameSimulator};
+use fbsim_core::game::play::result::{PlayResult, PlayTypeResult};
 use fbsim_core::game::context::{GameContext, GameContextBuilder};
 use fbsim_core::team::FootballTeam;
 
-use crate::cli::output::OutputFormat;
 use crate::cli::game::FbsimGameBenchmarkArgs;
 use crate::cli::game::FbsimGameSimArgs;
 
@@ -42,16 +42,10 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         Err(e) => return Err(format!("Error loading away team: {}", e)),
     };
 
-    // Determine which simulator to use
-    let pbp_sim: bool = match args.play_by_play {
-        Some(b) => b,
-        None => false
-    };
-
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
     let home_opening_kickoff: bool = rng.gen::<bool>();
-    let mut context: GameContext = GameContextBuilder::new()
+    let context: GameContext = GameContextBuilder::new()
         .home_team_short(home_team.short_name())
         .away_team_short(away_team.short_name())
         .home_possession(!home_opening_kickoff)
@@ -61,68 +55,96 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         .unwrap();
 
     // Simulate until the game is over
-    let mut game_over: bool = false;
-    if pbp_sim {
-        let play_sim = PlaySimulator::new();
-        while !game_over {
-            game_over = context.game_over();
-            if !game_over {
-                let (play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
+    let mut stdout = stdout();
+    let game_sim = GameSimulator::new();
+    let mut game = Game::new();
+    let mut new_context = context.clone();
+    while !new_context.game_over() {
+        // Simulate a play
+        let next_context = match game_sim.sim_play(&home_team, &away_team, new_context, &mut game, &mut rng) {
+            Ok(c) => c,
+            Err(e) => return Err(format!("Error simulating game: {}", e))
+        };
+        new_context = next_context;
 
-                // Serialize the play result as a string based on the given output format
-                let output_format = OutputFormat::from_str(
-                    &args.output_format.clone().unwrap_or(String::from(""))
-                ).unwrap();
-                let play_str: String = match output_format {
-                    OutputFormat::Json => {
-                        serde_json::to_string_pretty(&play).unwrap()
-                    },
-                    OutputFormat::Default => {
-                        format!("{}", play)
-                    }
-                };
-                println!("{}", play_str);
+        // Display the updated drive
+        let drive = match game.drives().last() {
+            Some(d) => d,
+            None => return Err(String::from("No drive found in current game"))
+        };
+        let drive_str = format!("{}", drive);
+        let drive_str_len = drive_str.matches("\n").count() as u16;
+        let _ = match stdout.write_all(drive_str.as_bytes()) {
+            Err(_) => return Err(String::from("Failed to write drive to stdout")),
+            _ => ()
+        };
+        let _ = match stdout.flush() {
+            Err(_) => return Err(String::from("Failed to flush stdout")),
+            _ => ()
+        };
 
-                // Update the context
-                context = new_context;
-            } else {
-                println!("{} Game over", context);
-            }
-        }
-    } else {
-        let drive_sim = DriveSimulator::new();
-        while !game_over {
-            game_over = context.game_over();
-            if !game_over {
-                let (drive, new_context) = drive_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
+        // Wait based on the duration of the play
+        let play = match drive.plays().last() {
+            Some(p) => p,
+            None => return Err(String::from("No plays found in current drive"))
+        };
+        let play_duration = play.result().play_duration();
+        let post_play_duration = match play.post_play() {
+            PlayTypeResult::BetweenPlay(res) => 20.max(res.duration()),
+            _ => 30
+        };
+        let duration = play_duration + post_play_duration;
+        let wait_time = (duration * 1000) as f64 / 2.0_f64;
+        let one_sec = time::Duration::from_millis(wait_time.round().abs() as u64);
+        thread::sleep(one_sec);
 
-                // Serialize the play result as a string based on the given output format
-                let output_format = OutputFormat::from_str(
-                    &args.output_format.clone().unwrap_or(String::from(""))
-                ).unwrap();
-                let drive_str: String = match output_format {
-                    OutputFormat::Json => {
-                        serde_json::to_string_pretty(&drive).unwrap()
-                    },
-                    OutputFormat::Default => {
-                        format!("{}", drive)
-                    }
-                };
-                println!("{}\n", drive_str);
-
-                // Update the context
-                context = new_context;
-            } else {
-                println!("{} Game over", context);
-            }
+        // Reset the cursor if drive is not complete
+        if !drive.complete() {
+            let errmsg = String::from("Failed to reset cursor");
+            let _ = match stdout.queue(cursor::MoveUp(drive_str_len)) {
+                Err(_) => return Err(errmsg),
+                _ => ()
+            };
+            let _ = match stdout.queue(cursor::MoveToColumn(0)) {
+                Err(_) => return Err(errmsg),
+                _ => ()
+            };
+            let _ = match stdout.queue(terminal::Clear(terminal::ClearType::FromCursorDown)) {
+                Err(_) => return Err(errmsg),
+                _ => ()
+            };
+        } else {
+            println!("\n");
         }
     }
+    let (game, new_context) = match game_sim.sim(&home_team, &away_team, context.clone(), &mut rng) {
+        Ok((g, c)) => (g, c),
+        Err(e) => return Err(format!("Error simulating game: {}", e))
+    };
+
+    // Print game-over message and final stats
+    println!("{} Game over", new_context);
+    println!("");
+    println!(
+        "{} stats | Passing: {} | Rushing: {} | Receiving: {}",
+        home_team.short_name(),
+        game.passing_stats(true),
+        game.rushing_stats(true),
+        game.receiving_stats(true)
+    );
+    println!(
+        "{} stats | Passing: {} | Rushing: {} | Receiving: {}",
+        away_team.short_name(),
+        game.passing_stats(false),
+        game.rushing_stats(false),
+        game.receiving_stats(false)
+    );
     Ok(())
 }
 
 pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
     // Instantiate the simulator and RNG
-    let play_sim = PlaySimulator::new();
+    let game_sim = GameSimulator::new();
     let mut rng = rand::thread_rng();
 
     // Instantiate 2D arrays to store the win and tie propotions
@@ -181,14 +203,11 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
                     .home_opening_kickoff(home_opening_kickoff)
                     .build()
                     .unwrap();
-                let mut game_over: bool = false;
-                while !game_over {
-                    game_over = context.game_over();
-                    if !game_over {
-                        let (_play, new_context) = play_sim.sim(&home_team, &away_team, context.clone(), &mut rng);
-                        context = new_context;
-                    }
-                }
+                let (_game, new_context) = match game_sim.sim(&home_team, &away_team, context.clone(), &mut rng) {
+                    Ok((g, c)) => (g, c),
+                    Err(e) => return Err(format!("Error simulating game: {}", e))
+                };
+                context = new_context;
 
                 // Track the observed final score in the score frequency map
                 let home_score = context.home_score();
