@@ -42,6 +42,12 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         Err(e) => return Err(format!("Error loading away team: {}", e)),
     };
 
+    // Load the playback speed argument
+    let playback_speed: f64 = match args.playback_speed {
+        Some(x) => x,
+        None => 2.0
+    };
+
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
     let home_opening_kickoff: bool = rng.gen::<bool>();
@@ -94,7 +100,7 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
             _ => 30
         };
         let duration = play_duration + post_play_duration;
-        let wait_time = (duration * 1000) as f64 / 2.0_f64;
+        let wait_time = (duration * 250) as f64 / playback_speed;
         let one_sec = time::Duration::from_millis(wait_time.round().abs() as u64);
         thread::sleep(one_sec);
 
@@ -117,10 +123,6 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
             println!("\n");
         }
     }
-    let (game, new_context) = match game_sim.sim(&home_team, &away_team, context.clone(), &mut rng) {
-        Ok((g, c)) => (g, c),
-        Err(e) => return Err(format!("Error simulating game: {}", e))
-    };
 
     // Print game-over message and final stats
     println!("{} Game over", new_context);
