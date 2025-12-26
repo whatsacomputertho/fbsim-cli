@@ -11,11 +11,11 @@ use crate::cli::game::score::FbsimGameScoreSubcommand;
 /// The sim subcommand arguments
 #[derive(Args, Clone)]
 pub struct FbsimGameSimArgs {
-    /// The format to output
-    #[arg(short='o')]
-    #[arg(long="output")]
-    pub output_format: Option<String>,
-    
+    /// The playback speed
+    #[arg(short='s')]
+    #[arg(long="speed")]
+    pub playback_speed: Option<f64>,
+
     /// A path to a file specifying the game's home team
     #[arg(long="home")]
     pub home: String,
@@ -23,10 +23,6 @@ pub struct FbsimGameSimArgs {
     /// A path to a file specifying the game's away team
     #[arg(long="away")]
     pub away: String,
-
-    /// Whether to use the play-by-play or drive simulator
-    #[arg(long="play-by-play")]
-    pub play_by_play: Option<bool>
 }
 
 /// The benchmark subcommand arguments
