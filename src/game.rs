@@ -51,6 +51,12 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         None => false
     };
 
+    // Load the neutral site argument
+    let neutral_site: bool = match args.neutral_site {
+        Some(x) => x,
+        None => false
+    };
+
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
     let home_opening_kickoff: bool = rng.gen::<bool>();
