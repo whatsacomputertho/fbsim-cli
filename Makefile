@@ -12,10 +12,9 @@ LINT_ARGS ?= --all-targets --all-features -- -D warnings
 
 build-dependencies:
 	rustup target add $(PLATFORM)
-	cargo install cross
 
 build:
-	cross build $(BUILD_ARGS)
+	cargo build $(BUILD_ARGS)
 
 lint:
 	cargo clippy $(LINT_ARGS)
