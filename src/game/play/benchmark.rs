@@ -99,11 +99,8 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
                         
                         // Update statistic vecs after each play
                         play_durations.push(play_result.play_duration() as f64);
-                        match play.post_play() {
-                            PlayTypeResult::BetweenPlay(res) => {
-                                between_play_durations.push(res.duration() as f64);
-                            },
-                            _ => {}
+                        if let PlayTypeResult::BetweenPlay(res) = play.post_play() {
+                            between_play_durations.push(res.duration() as f64);
                         }
                         match play_result {
                             PlayTypeResult::Run(_) => {
@@ -121,17 +118,13 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
                                     let diff_yac: &mut Vec<f64> = yac.get_mut(&skill_diff).unwrap();
                                     diff_yac.push(res.yards_after_catch() as f64);
                                     diff_completions.push(1.0);
-                                } else {
-                                    if !(res.sack() || res.scramble()) {
-                                        diff_completions.push(0.0);
-                                    }
+                                } else if !(res.sack() || res.scramble()) {
+                                    diff_completions.push(0.0);
                                 }
                                 if res.interception() {
                                     diff_interceptions.push(1.0);
-                                } else {
-                                    if !(res.sack() || res.scramble()) {
-                                        diff_interceptions.push(0.0);
-                                    }
+                                } else if !(res.sack() || res.scramble()) {
+                                    diff_interceptions.push(0.0);
                                 }
                             },
                             PlayTypeResult::FieldGoal(res) => {
@@ -193,7 +186,7 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
     }
 
     // Duration
-    println!("");
+    println!();
     println!("############");
     println!("# Duration #");
     println!("############");
@@ -205,11 +198,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
     let std = play_durations.clone().std_dev();
     let duration_line = format!("{:.4}\t{:.4}", mean, std);
     duration_lines = duration_lines + "\n" + &duration_line;
-    println!("");
+    println!();
     println!("Play duration distribution:");
     write!(&mut tw, "{}", &duration_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display mean, standard deviation post-play duration
     let mut tw = TabWriter::new(stdout());
@@ -218,14 +211,14 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
     let std = between_play_durations.clone().std_dev();
     let duration_line = format!("{:.4}\t{:.4}", mean, std);
     duration_lines = duration_lines + "\n" + &duration_line;
-    println!("");
+    println!();
     println!("Post-play duration distribution:");
     write!(&mut tw, "{}", &duration_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Rushing
-    println!("");
+    println!();
     println!("###########");
     println!("# Rushing #");
     println!("###########");
@@ -239,14 +232,14 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let rushing_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         rushing_lines = rushing_lines + "\n" + &rushing_line;
     }
-    println!("");
+    println!();
     println!("Rushing distribution:");
     write!(&mut tw, "{}", &rushing_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Field goals
-    println!("");
+    println!();
     println!("###############");
     println!("# Field goals #");
     println!("###############");
@@ -259,11 +252,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let fg_made_line = format!("{}\t{:.4}", diff, mean);
         fg_made_lines = fg_made_lines + "\n" + &fg_made_line;
     }
-    println!("");
+    println!();
     println!("Field goal made percentages (skill):");
     write!(&mut tw, "{}", &fg_made_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display field goal made percentage by yard line
     let mut tw = TabWriter::new(stdout());
@@ -273,11 +266,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let fg_made_yl_line = format!("{}\t{:.4}", yl, mean);
         fg_made_yl_lines = fg_made_yl_lines + "\n" + &fg_made_yl_line;
     }
-    println!("");
+    println!();
     println!("Field goal made percentages (yard line):");
     write!(&mut tw, "{}", &fg_made_yl_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display field goal blocked percentage
     let mut tw = TabWriter::new(stdout());
@@ -287,11 +280,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let fg_block_line = format!("{}\t{:.4}", diff, mean);
         fg_block_lines = fg_block_lines + "\n" + &fg_block_line;
     }
-    println!("");
+    println!();
     println!("Field goal block percentages:");
     write!(&mut tw, "{}", &fg_block_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display field goal blocked percentage by yard line
     let mut tw = TabWriter::new(stdout());
@@ -301,14 +294,14 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let fg_blocked_yl_line = format!("{}\t{:.4}", yl, mean);
         fg_blocked_yl_lines = fg_blocked_yl_lines + "\n" + &fg_blocked_yl_line;
     }
-    println!("");
+    println!();
     println!("Field goal blocked percentages (yard line):");
     write!(&mut tw, "{}", &fg_blocked_yl_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Kickoffs
-    println!("");
+    println!();
     println!("############");
     println!("# Kickoffs #");
     println!("############");
@@ -322,11 +315,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let kick_dist_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         kick_dist_lines = kick_dist_lines + "\n" + &kick_dist_line;
     }
-    println!("");
+    println!();
     println!("Kickoff distance distribution (skill):");
     write!(&mut tw, "{}", &kick_dist_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display kickoff return yards by skill diff
     let mut tw = TabWriter::new(stdout());
@@ -337,14 +330,14 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let kick_ret_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         kick_ret_lines = kick_ret_lines + "\n" + &kick_ret_line;
     }
-    println!("");
+    println!();
     println!("Kick return yards distribution (skill):");
     write!(&mut tw, "{}", &kick_ret_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Punts
-    println!("");
+    println!();
     println!("#########");
     println!("# Punts #");
     println!("#########");
@@ -358,11 +351,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let punt_dist_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         punt_dist_lines = punt_dist_lines + "\n" + &punt_dist_line;
     }
-    println!("");
+    println!();
     println!("Punt distance distribution (skill):");
     write!(&mut tw, "{}", &punt_dist_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display punt distance by yard line
     let mut tw = TabWriter::new(stdout());
@@ -373,11 +366,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let punt_dist_yl_line = format!("{}\t{:.4}\t{:.4}", yl, mean, std);
         punt_dist_yl_lines = punt_dist_yl_lines + "\n" + &punt_dist_yl_line;
     }
-    println!("");
+    println!();
     println!("Punt distance distribution (yard line):");
     write!(&mut tw, "{}", &punt_dist_yl_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display punt return yards by skill diff
     let mut tw = TabWriter::new(stdout());
@@ -388,11 +381,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let punt_ret_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         punt_ret_lines = punt_ret_lines + "\n" + &punt_ret_line;
     }
-    println!("");
+    println!();
     println!("Punt return yards distribution (skill):");
     write!(&mut tw, "{}", &punt_ret_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display punt return yards by yard line
     let mut tw = TabWriter::new(stdout());
@@ -403,14 +396,14 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let punt_ret_yl_line = format!("{}\t{:.4}\t{:.4}", yl, mean, std);
         punt_ret_yl_lines = punt_ret_yl_lines + "\n" + &punt_ret_yl_line;
     }
-    println!("");
+    println!();
     println!("Punt return yards distribution (yard line):");
     write!(&mut tw, "{}", &punt_ret_yl_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Passing
-    println!("");
+    println!();
     println!("###########");
     println!("# Passing #");
     println!("###########");
@@ -424,11 +417,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let passing_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         passing_lines = passing_lines + "\n" + &passing_line;
     }
-    println!("");
+    println!();
     println!("Passing distribution:");
     write!(&mut tw, "{}", &passing_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display mean, standard deviation pass distances
     let mut tw = TabWriter::new(stdout());
@@ -439,11 +432,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let pass_distance_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         pass_distance_lines = pass_distance_lines + "\n" + &pass_distance_line;
     }
-    println!("");
+    println!();
     println!("Pass distance distribution:");
     write!(&mut tw, "{}", &pass_distance_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display mean, standard deviation yards after catch
     let mut tw = TabWriter::new(stdout());
@@ -454,11 +447,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let yac_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         yac_lines = yac_lines + "\n" + &yac_line;
     }
-    println!("");
+    println!();
     println!("Yards after catch distribution:");
     write!(&mut tw, "{}", &yac_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display completion percentages
     let mut tw = TabWriter::new(stdout());
@@ -468,11 +461,11 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let comp_line = format!("{}\t{:.4}", diff, mean);
         comp_lines = comp_lines + "\n" + &comp_line;
     }
-    println!("");
+    println!();
     println!("Completion percentages:");
     write!(&mut tw, "{}", &comp_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display interception percentages
     let mut tw = TabWriter::new(stdout());
@@ -482,10 +475,10 @@ pub fn play_benchmark(_args: FbsimGamePlayBenchmarkArgs) -> Result<(), String> {
         let int_line = format!("{}\t{:.4}", diff, mean);
         int_lines = int_lines + "\n" + &int_line;
     }
-    println!("");
+    println!();
     println!("Interception percentages:");
     write!(&mut tw, "{}", &int_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
     Ok(())
 }

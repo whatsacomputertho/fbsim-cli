@@ -28,9 +28,9 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
     // Instantiate zeroed BTreeMaps to store the home and away scores
     let mut home_scores: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
     let mut away_scores: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
-    for i in 0..11 {
-        let off = ((10 - i) * 10) as i32;
-        let def = (i * 10) as i32;
+    for i in 0_i32..11_i32 {
+        let off = (10 - i) * 10;
+        let def = i * 10;
         home_scores.insert(off - def, Vec::new());
         away_scores.insert(off - def, Vec::new());
     }
@@ -97,9 +97,9 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
 
                 // Increment the win proportions
                 win_props[i][j] = if home_win {
-                    ((win_props[i][j] * ((k as f64) - 1_f64) + 1_f64)) / (k as f64)
+                    (win_props[i][j] * ((k as f64) - 1_f64) + 1_f64) / (k as f64)
                 } else {
-                    ((win_props[i][j] * ((k as f64) - 1_f64) + 0_f64)) / (k as f64)
+                    (win_props[i][j] * ((k as f64) - 1_f64) + 0_f64) / (k as f64)
                 };
 
                 // Increment the progress bar
@@ -109,13 +109,13 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
     }
 
     // Display the win probability table
-    println!("");
+    println!();
     let mut tw = TabWriter::new(stdout());
     let mut win_table_lines = String::from(
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
-    for i in 0..11 {
-        let table_line = win_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
+    for (i, prop) in win_props.iter().enumerate() {
+        let table_line = prop.iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
@@ -123,18 +123,18 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
         };
         win_table_lines = win_table_lines + "\n" + &table_line_pfx + "\t" + &table_line;
     }
-    println!("");
+    println!();
     println!("Win probabilities:");
     write!(&mut tw, "{}", &win_table_lines).unwrap();
     tw.flush().unwrap();
 
     // Display the tie probability table
-    println!("");
+    println!();
     let mut tie_table_lines = String::from(
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
-    for i in 0..11 {
-        let table_line = tie_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
+    for (i, prop) in tie_props.iter().enumerate() {
+        let table_line = prop.iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
@@ -142,11 +142,11 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
         };
         tie_table_lines = tie_table_lines + "\n" + &table_line_pfx + "\t" + &table_line;
     }
-    println!("");
+    println!();
     println!("Tie probabilities:");
     write!(&mut tw, "{}", &tie_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the home mean and standard deviation score
     let mut home_mean_std_lines = String::from("Skill Diff\tMean Score\tStd Score");
@@ -156,11 +156,11 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
         let home_mean_std_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         home_mean_std_lines = home_mean_std_lines + "\n" + &home_mean_std_line;
     }
-    println!("");
+    println!();
     println!("Home score distribution:");
     write!(&mut tw, "{}", &home_mean_std_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the away mean and standard deviation score
     let mut away_mean_std_lines = String::from("Skill Diff\tMean Score\tStd Score");
@@ -170,11 +170,11 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
         let away_mean_std_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         away_mean_std_lines = away_mean_std_lines + "\n" + &away_mean_std_line;
     }
-    println!("");
+    println!();
     println!("Away score distribution:");
     write!(&mut tw, "{}", &away_mean_std_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the observed score frequency
     let mut score_freq_table_lines = String::from("Score\tFrequency\tCount");
@@ -183,10 +183,10 @@ pub fn final_score_sim_benchmark(_args: FbsimGameScoreBenchmarkArgs) -> Result<(
         let score_freq_table_line = format!("{}\t{:.4}%\t{}", score, freq * 100_f64, count);
         score_freq_table_lines = score_freq_table_lines + "\n" + &score_freq_table_line;
     }
-    println!("");
+    println!();
     println!("Score frequency:");
     write!(&mut tw, "{}", &score_freq_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
     Ok(())
 }

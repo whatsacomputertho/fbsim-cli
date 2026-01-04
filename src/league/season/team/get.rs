@@ -38,28 +38,28 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw, "Team:\t{}\n", team.name()).map_err(|e| e.to_string())?;
-    write!(&mut tw, "Record:\t{}\n\n", matchups.record()).map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Team:\t{}", team.name()).map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Record:\t{}\n", matchups.record()).map_err(|e| e.to_string())?;
 
     // Display each matchup
-    write!(
+    writeln!(
         &mut tw,
-        "Week\tHome Team\tHome Score\tAway Team\tAway Score\n"
+        "Week\tHome Team\tHome Score\tAway Team\tAway Score"
     ).map_err(|e| e.to_string())?;
     for (i, matchup) in matchups.matchups().iter().enumerate() {
         match matchup {
             Some(m) => {
                 let away_team = season.team(*m.away_team()).unwrap().name();
                 let home_team = season.team(*m.home_team()).unwrap().name();
-                write!(
-                    &mut tw, "{}\t{}\t{}\t{}\t{}\n", i+1,
+                writeln!(
+                    &mut tw, "{}\t{}\t{}\t{}\t{}", i+1,
                     home_team, m.home_score(),
                     away_team, m.away_score()
                 ).map_err(|e| e.to_string())?;
             },
             None => {
-                write!(
-                    &mut tw, "{}\t{}", i+1, "BYE"
+                writeln!(
+                    &mut tw, "{}\tBYE", i+1
                 ).map_err(|e| e.to_string())?;
             },
         }

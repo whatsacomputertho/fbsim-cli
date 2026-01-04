@@ -29,10 +29,10 @@ pub fn list_season_weeks(args: FbsimLeagueSeasonWeekListArgs) -> Result<(), Stri
 
     // Display the season weeks in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw,"Week\tGames\tSimulated\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw,"Week\tGames\tSimulated").map_err(|e| e.to_string())?;
     for (i, week) in season.weeks().iter().enumerate() {
-        write!(
-            &mut tw, "{}\t{}\t{}\n", i+1,
+        writeln!(
+            &mut tw, "{}\t{}\t{}", i+1,
             week.matchups().len(),
             week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
         ).map_err(|e| e.to_string())?;
