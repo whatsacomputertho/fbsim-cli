@@ -21,15 +21,14 @@ pub fn sim_season(args: FbsimLeagueSeasonSimArgs) -> Result<(), String> {
 
     // Simulate the current league season
     let mut rng = rand::thread_rng();
-    match league.sim(&mut rng) {
-        Ok(()) => (),
-        Err(error) => return Err(
+    if let Err(e) = league.sim(&mut rng) {
+        return Err(
             format!(
                 "Failed to simulate current season: {}",
-                error
+                e
             )
-        ),
-    };
+        );
+    }
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -40,9 +39,8 @@ pub fn sim_season(args: FbsimLeagueSeasonSimArgs) -> Result<(), String> {
 
     // Write the league back to its file
     let write_res = fs::write(&args.league, league_str);
-    let _ = match write_res {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Error writing league file: {}", error)),
-    };
+    if let Err(e) = write_res {
+        return Err(format!("Error writing league file: {}", e));
+    }
     Ok(())
 }

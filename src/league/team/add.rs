@@ -31,9 +31,8 @@ pub fn add_team(args: FbsimLeagueTeamAddArgs) -> Result<(), String> {
 
     // Write the league back to its file
     let write_res = fs::write(&args.league, league_str);
-    let _ = match write_res {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Error writing league file: {}", error)),
+    if let Err(e) = write_res {
+        return Err(format!("Error writing league file: {}", e));
     };
     Ok(())
 }
