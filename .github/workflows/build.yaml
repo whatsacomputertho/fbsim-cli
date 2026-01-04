@@ -37,15 +37,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build CLI
         run: |
-          make build-dependencies \
-            PLATFORM="${{ matrix.platform.target }}"
-          make build \
-            PLATFORM="${{ matrix.platform.target }}"
+          make build-dependencies PLATFORM="${{ matrix.platform.target }}"
+          make build PLATFORM="${{ matrix.platform.target }}"
       - name: Release CLI
         if: ${{ github.event_name == 'release' }}
         run: |
-          make release \
-            RELEASE_UPLOAD_URL="${{ github.event.release.upload_url }}" \
-            PLATFORM="${{ matrix.platform.target }}"
+          make release RELEASE_UPLOAD_URL="${{ github.event.release.upload_url }}" PLATFORM="${{ matrix.platform.target }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
