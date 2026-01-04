@@ -35,15 +35,15 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
 
     // Display each matchup in the week in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw,"Matchup\tAway Team\tAway Score\tHome Team\tHome Score\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw,"Matchup\tAway Team\tAway Score\tHome Team\tHome Score").map_err(|e| e.to_string())?;
     for (i, matchup) in week.matchups().iter().enumerate() {
         // Get the team names
         let away_team = season.team(*matchup.away_team()).unwrap().name();
         let home_team = season.team(*matchup.home_team()).unwrap().name();
 
         // Display the matchup
-        write!(
-            &mut tw,"{}\t{}\t{}\t{}\t{}\n", i,
+        writeln!(
+            &mut tw,"{}\t{}\t{}\t{}\t{}", i,
             away_team, matchup.away_score(),
             home_team, matchup.home_score()
         ).map_err(|e| e.to_string())?;

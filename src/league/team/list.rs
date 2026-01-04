@@ -26,7 +26,7 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw, "ID\tTeam\tSeasons\tRecord\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "ID\tTeam\tSeasons\tRecord").map_err(|e| e.to_string())?;
 
     // Get the collection of teams from the league
     let teams: &BTreeMap<usize, LeagueTeam> = league.teams();
@@ -34,7 +34,7 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
         let matchups: LeagueMatchups = league.team_matchups(*id);
 
         // Get the most recent team name
-        let team = if matchups.matchups().len() > 0 {
+        let team = if !matchups.matchups().is_empty() {
             if let Some((year, _)) = matchups.matchups().iter().next_back() {
                 league.season(*year).unwrap().team(*id).unwrap().name().clone()
             } else {
@@ -44,7 +44,7 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
             "(No Name)".to_string()
         };
 
-        write!(&mut tw, "{}\t{}\t{}\t{}\n", id, team, matchups.matchups().len(), matchups.record()).map_err(|e| e.to_string())?;
+        writeln!(&mut tw, "{}\t{}\t{}\t{}", id, team, matchups.matchups().len(), matchups.record()).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())

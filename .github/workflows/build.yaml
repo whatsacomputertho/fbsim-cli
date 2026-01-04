@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  push:
+    branches: '**'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runs-on }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runs-on: windows-latest
+            target: aarch64-pc-windows-msvc
+          - runs-on: macOS-latest
+            target: x86_64-apple-darwin
+          - runs-on: macOS-latest
+            target: aarch64-apple-darwin
+          - runs-on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runs-on: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build CLI
+        run: |
+          make build-dependencies PLATFORM="${{ matrix.platform.target }}"
+          make build PLATFORM="${{ matrix.platform.target }}"
+      - name: Release CLI
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          make release RELEASE_UPLOAD_URL="${{ github.event.release.upload_url }}" PLATFORM="${{ matrix.platform.target }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

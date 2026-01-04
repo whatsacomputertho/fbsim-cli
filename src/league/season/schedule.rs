@@ -36,10 +36,9 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
             Err(error) => return Err(format!("Failed to instantiate rng: {}", error)),
         },
     };
-    let _schedule_gen = match league.generate_schedule(options, &mut rng) {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Error generating league schedule: {}", error)),
-    };
+    if let Err(e) = league.generate_schedule(options, &mut rng) {
+        return Err(format!("Error generating league schedule: {}", e));
+    }
 
     // Serialize the league as JSON
     let league_str: String = match serde_json::to_string_pretty(&league) {
@@ -49,9 +48,8 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
 
     // Write the league back to its file
     let write_res = fs::write(&args.league, league_str);
-    let _file_write = match write_res {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Error writing league file: {}", error)),
+    if let Err(e) = write_res {
+        return Err(format!("Error writing league file: {}", e));
     };
     Ok(())
 }

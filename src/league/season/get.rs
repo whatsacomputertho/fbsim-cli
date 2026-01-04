@@ -30,20 +30,20 @@ pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
 
     // Display the season teams in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw,"Team\tRecord\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw,"Team\tRecord").map_err(|e| e.to_string())?;
     for (id, team) in season.teams().iter() {
         let matchups = season.team_matchups(*id)?;
-        write!(
-            &mut tw, "{}\t{}\n",
+        writeln!(
+            &mut tw, "{}\t{}",
             team.name(), matchups.record()
         ).map_err(|e| e.to_string())?;
     }
 
     // Display the season weeks in a table
-    write!(&mut tw,"\nWeek\tGames\tSimulated\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw,"\nWeek\tGames\tSimulated").map_err(|e| e.to_string())?;
     for (i, week) in season.weeks().iter().enumerate() {
-        write!(
-            &mut tw, "{}\t{}\t{}\n", i+1,
+        writeln!(
+            &mut tw, "{}\t{}\t{}", i+1,
             week.matchups().len(),
             week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
         ).map_err(|e| e.to_string())?;

@@ -43,10 +43,7 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
     };
 
     // Load the playback speed argument
-    let playback_speed: f64 = match args.playback_speed {
-        Some(x) => x,
-        None => 2.0
-    };
+    let playback_speed: f64 = args.playback_speed.unwrap_or(2.0);
 
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
@@ -80,14 +77,12 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         };
         let drive_str = format!("{}", drive);
         let drive_str_len = drive_str.matches("\n").count() as u16;
-        let _ = match stdout.write_all(drive_str.as_bytes()) {
-            Err(_) => return Err(String::from("Failed to write drive to stdout")),
-            _ => ()
-        };
-        let _ = match stdout.flush() {
-            Err(_) => return Err(String::from("Failed to flush stdout")),
-            _ => ()
-        };
+        if stdout.write_all(drive_str.as_bytes()).is_err() {
+            return Err(String::from("Failed to write drive to stdout"));
+        }
+        if stdout.flush().is_err() {
+            return Err(String::from("Failed to flush stdout"));
+        }
 
         // Wait based on the duration of the play
         let play = match drive.plays().last() {
@@ -107,18 +102,15 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         // Reset the cursor if drive is not complete
         if !drive.complete() {
             let errmsg = String::from("Failed to reset cursor");
-            let _ = match stdout.queue(cursor::MoveUp(drive_str_len)) {
-                Err(_) => return Err(errmsg),
-                _ => ()
-            };
-            let _ = match stdout.queue(cursor::MoveToColumn(0)) {
-                Err(_) => return Err(errmsg),
-                _ => ()
-            };
-            let _ = match stdout.queue(terminal::Clear(terminal::ClearType::FromCursorDown)) {
-                Err(_) => return Err(errmsg),
-                _ => ()
-            };
+            if stdout.queue(cursor::MoveUp(drive_str_len)).is_err() {
+                return Err(errmsg);
+            }
+            if stdout.queue(cursor::MoveToColumn(0)).is_err() {
+                return Err(errmsg);
+            }
+            if stdout.queue(terminal::Clear(terminal::ClearType::FromCursorDown)).is_err() {
+                return Err(errmsg);
+            }
         } else {
             println!("\n");
         }
@@ -126,7 +118,7 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
 
     // Print game-over message and final stats
     println!("{} Game over", new_context);
-    println!("");
+    println!();
     println!(
         "{} stats | Passing: {} | Rushing: {} | Receiving: {}",
         home_team.short_name(),
@@ -163,8 +155,8 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
     let mut home_scores: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
     let mut away_scores: BTreeMap<i32, Vec<f64>> = BTreeMap::new();
     for i in 0..11 {
-        let off = ((10 - i) * 10) as i32;
-        let def = (i * 10) as i32;
+        let off = (10 - i) * 10;
+        let def = i * 10;
         home_scores.insert(off - def, Vec::new());
         away_scores.insert(off - def, Vec::new());
     }
@@ -238,9 +230,9 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
 
                 // Increment the win proportions
                 win_props[i][j] = if home_win {
-                    ((win_props[i][j] * ((k as f64) - 1_f64) + 1_f64)) / (k as f64)
+                    (win_props[i][j] * ((k as f64) - 1_f64) + 1_f64) / (k as f64)
                 } else {
-                    ((win_props[i][j] * ((k as f64) - 1_f64) + 0_f64)) / (k as f64)
+                    (win_props[i][j] * ((k as f64) - 1_f64) + 0_f64) / (k as f64)
                 };
 
                 // Increment the progress bar
@@ -250,13 +242,13 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
     }
 
     // Display the win probability table
-    println!("");
+    println!();
     let mut tw = TabWriter::new(stdout());
     let mut win_table_lines = String::from(
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
-    for i in 0..11 {
-        let table_line = win_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
+    for (i, prop) in win_props.iter().enumerate() {
+        let table_line = prop.iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
@@ -264,18 +256,18 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
         };
         win_table_lines = win_table_lines + "\n" + &table_line_pfx + "\t" + &table_line;
     }
-    println!("");
+    println!();
     println!("Win probabilities:");
     write!(&mut tw, "{}", &win_table_lines).unwrap();
     tw.flush().unwrap();
 
     // Display the tie probability table
-    println!("");
+    println!();
     let mut tie_table_lines = String::from(
         "\t0\t\t\t\t\t\t\t\t\t\t100"
     );
-    for i in 0..11 {
-        let table_line = tie_props[i].iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
+    for (i, prop) in tie_props.iter().enumerate() {
+        let table_line = prop.iter().map(|x| format!("{:.4}", x)).collect::<Vec<_>>().join("\t");
         let table_line_pfx = if i == 0 || i == 10 {
             format!("{}", i * 10)
         } else {
@@ -283,11 +275,11 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
         };
         tie_table_lines = tie_table_lines + "\n" + &table_line_pfx + "\t" + &table_line;
     }
-    println!("");
+    println!();
     println!("Tie probabilities:");
     write!(&mut tw, "{}", &tie_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the home mean and standard deviation score
     let mut home_mean_std_lines = String::from("Skill Diff\tMean Score\tStd Score");
@@ -297,11 +289,11 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
         let home_mean_std_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         home_mean_std_lines = home_mean_std_lines + "\n" + &home_mean_std_line;
     }
-    println!("");
+    println!();
     println!("Home score distribution:");
     write!(&mut tw, "{}", &home_mean_std_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the away mean and standard deviation score
     let mut away_mean_std_lines = String::from("Skill Diff\tMean Score\tStd Score");
@@ -311,11 +303,11 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
         let away_mean_std_line = format!("{}\t{:.4}\t{:.4}", diff, mean, std);
         away_mean_std_lines = away_mean_std_lines + "\n" + &away_mean_std_line;
     }
-    println!("");
+    println!();
     println!("Away score distribution:");
     write!(&mut tw, "{}", &away_mean_std_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
 
     // Display the observed score frequency
     let mut score_freq_table_lines = String::from("Score\tFrequency\tCount");
@@ -324,10 +316,10 @@ pub fn game_benchmark(_args: FbsimGameBenchmarkArgs) -> Result<(), String> {
         let score_freq_table_line = format!("{}\t{:.4}%\t{}", score, freq * 100_f64, count);
         score_freq_table_lines = score_freq_table_lines + "\n" + &score_freq_table_line;
     }
-    println!("");
+    println!();
     println!("Score frequency:");
     write!(&mut tw, "{}", &score_freq_table_lines).unwrap();
     tw.flush().unwrap();
-    println!("");
+    println!();
     Ok(())
 }
