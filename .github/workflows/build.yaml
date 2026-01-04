@@ -11,33 +11,41 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runs-on }}
 
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-pc-windows-msvc
-          - x86_64-pc-windows-gnu
-          - x86_64-apple-darwin
-          - x86_64-unknown-linux-gnu
-          - aarch64-pc-windows-msvc
-          - aarch64-apple-darwin
-          - aarch64-unknown-linux-gnu
+        platform:
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-gnu
+          - runs-on: windows-latest
+            target: aarch64-pc-windows-msvc
+          - runs-on: macOS-latest
+            target: x86_64-apple-darwin
+          - runs-on: macOS-latest
+            target: aarch64-apple-darwin
+          - runs-on: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runs-on: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
       - name: Build CLI
         run: |
           make build-dependencies \
-            PLATFORM="${{ matrix.target }}"
+            PLATFORM="${{ matrix.platform.target }}"
           make build \
-            PLATFORM="${{ matrix.target }}"
+            PLATFORM="${{ matrix.platform.target }}"
       - name: Release CLI
         if: ${{ github.event_name == 'release' }}
         run: |
           make release \
             RELEASE_UPLOAD_URL="${{ github.event.release.upload_url }}" \
-            PLATFORM="${{ matrix.target }}"
+            PLATFORM="${{ matrix.platform.target }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
