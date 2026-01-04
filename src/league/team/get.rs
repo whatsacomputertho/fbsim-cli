@@ -30,13 +30,13 @@ pub fn get_team(args: FbsimLeagueTeamGetArgs) -> Result<(), String> {
 
     // Get the team's matchups, if none then the team has never participated
     let matchups: LeagueMatchups = league.team_matchups(args.team);
-    if matchups.matchups().len() < 1 {
+    if matchups.matchups().is_empty() {
         return Err(format!("Team with ID {} has not participated in a season", args.team));
     }
 
     // If matchups exist, then summarize
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw, "Year\tTeam\tRecord\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Year\tTeam\tRecord").map_err(|e| e.to_string())?;
 
     // Calculate the team's record for each previous season
     // Get the team's name for each previous season
@@ -45,9 +45,9 @@ pub fn get_team(args: FbsimLeagueTeamGetArgs) -> Result<(), String> {
             Some(t) => t,
             None => continue
         };
-        write!(&mut tw, "{}\t{}\t{}\n", year, team.name(), season.record()).map_err(|e| e.to_string())?;
+        writeln!(&mut tw, "{}\t{}\t{}", year, team.name(), season.record()).map_err(|e| e.to_string())?;
     }
-    write!(&mut tw, "Total\t\t{}\n", matchups.record()).map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Total\t\t{}", matchups.record()).map_err(|e| e.to_string())?;
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

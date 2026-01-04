@@ -25,9 +25,8 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
         Ok(team) => team,
         Err(error) => return Err(format!("Error creating team: {}", error)),
     };
-    match league.add_season_team(args.id, season_team) {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Failed to add team to season: {}", error)),
+    if let Err(e) = league.add_season_team(args.id, season_team) {
+        return Err(format!("Failed to add team to season: {}", e));
     }
 
     // Serialize the league as JSON
@@ -39,9 +38,8 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
 
     // Write the league back to its file
     let write_res = fs::write(&args.league, league_str);
-    let _ = match write_res {
-        Ok(()) => (),
-        Err(error) => return Err(format!("Error writing league file: {}", error)),
-    };
+    if let Err(e) = write_res {
+        return Err(format!("Error writing league file: {}", e));
+    }
     Ok(())
 }

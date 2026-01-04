@@ -34,16 +34,13 @@ pub fn play_sim(args: FbsimGamePlaySimArgs) -> Result<(), String> {
     };
 
     // Decide whether to update the context
-    let is_context_given: bool = match &args.context {
-        Some(_) => true,
-        None => false
-    };
+    let is_context_given: bool = args.context.is_some();
     let update_context: bool = match &args.update_context {
         Some(x) => {
             if is_context_given {
                 *x
             } else {
-                return Err(format!("Cannot update context, no context given"));
+                return Err(String::from("Cannot update context, no context given"));
             }
         },
         None => false

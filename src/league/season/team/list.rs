@@ -27,7 +27,7 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
-    write!(&mut tw, "Team\tRecord\n").map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Team\tRecord").map_err(|e| e.to_string())?;
 
     // Get the league season
     let season = match league.season(args.year) {
@@ -42,7 +42,7 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
 
         // TODO: Replace the ID with the most recent team name
 
-        write!(&mut tw, "{}\t{}\n", team.name(), matchups.record()).map_err(|e| e.to_string())?;
+        writeln!(&mut tw, "{}\t{}", team.name(), matchups.record()).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())

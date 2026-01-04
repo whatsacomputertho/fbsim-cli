@@ -23,6 +23,6 @@ impl std::fmt::Display for OutputFormat {
             OutputFormat::Json => "json",
             OutputFormat::Default => "default"
         };
-        f.write_str(&fmt_str)
+        f.write_str(fmt_str)
     }
 }

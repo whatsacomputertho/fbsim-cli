@@ -28,24 +28,21 @@ pub fn list_seasons(args: FbsimLeagueSeasonListArgs) -> Result<(), String> {
 
     // Display the season list in a table
     let mut tw = TabWriter::new(stdout());
-    write!(
+    writeln!(
         &mut tw,
-        "Season\tTeams\tWeeks\n"
+        "Season\tTeams\tWeeks"
     ).map_err(|e| e.to_string())?;
-    match current_season {
-        Some(s) => {
-            write!(
-                &mut tw,
-                "{} (Current)\t{}\t{}\n",
-                s.year(), s.teams().len(), s.weeks().len()
-            ).map_err(|e| e.to_string())?;
-        },
-        None => ()
+    if let Some(s) = current_season {
+        writeln!(
+            &mut tw,
+            "{} (Current)\t{}\t{}",
+            s.year(), s.teams().len(), s.weeks().len()
+        ).map_err(|e| e.to_string())?;
     }
     for season in past_seasons.iter() {
-        write!(
+        writeln!(
             &mut tw,
-            "{}\t{}\t{}\n",
+            "{}\t{}\t{}",
             season.year(),
             season.teams().len(),
             season.weeks().len()
