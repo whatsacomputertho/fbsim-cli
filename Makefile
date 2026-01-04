@@ -10,6 +10,9 @@ RELEASE_UPLOAD_URL ?=
 BUILD_ARGS ?= --release --target=$(PLATFORM)
 LINT_ARGS ?= --all-targets --all-features -- -D warnings
 
+build-dependencies:
+	rustup target add $(PLATFORM)
+
 build:
 	cargo build $(BUILD_ARGS)
 

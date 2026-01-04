@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build CLI
         run: |
+          make build-dependencies \
+            PLATFORM="${{ matrix.target }}"
           make build \
             PLATFORM="${{ matrix.target }}"
       - name: Release CLI
