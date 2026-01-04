@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: '**'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-pc-windows-msvc
+          - x86_64-pc-windows-gnu
+          - x86_64-apple-darwin
+          - x86_64-unknown-linux-gnu
+          - aarch64-pc-windows-msvc
+          - aarch64-apple-darwin
+          - aarch64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - name: Build CLI
+        run: |
+          make build
+      - name: Release CLI
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          make release \
+            RELEASE_UPLOAD_URL="${{ github.event.release.upload_url }}" \
+            PLATFORM="${{ matrix.target }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
