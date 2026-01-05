@@ -45,6 +45,9 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
     // Load the playback speed argument
     let playback_speed: f64 = args.playback_speed.unwrap_or(2.0);
 
+    // Load the neutral site argument
+    let neutral_site: bool = args.neutral_site.unwrap_or(false);
+
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
     let home_opening_kickoff: bool = rng.gen::<bool>();
@@ -54,6 +57,7 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
         .home_possession(!home_opening_kickoff)
         .home_positive_direction(!home_opening_kickoff)
         .home_opening_kickoff(home_opening_kickoff)
+        .neutral_site(neutral_site)
         .build()
         .unwrap();
 
