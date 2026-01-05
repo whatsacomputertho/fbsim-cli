@@ -11,7 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.23", features = ["derive"] }
-fbsim-core = "1.0.0-beta.1"
+fbsim-core = { git = "https://github.com/whatsacomputertho/fbsim-core.git", branch = "release-1.0" }
 crossterm = "0.27.0"
 indicatif = "0.17.11"
 rand = "0.8.5"
