@@ -16,6 +16,10 @@ pub struct FbsimGameSimArgs {
     #[arg(long="speed")]
     pub playback_speed: Option<f64>,
 
+    /// Whether this is a neutral site game
+    #[arg(long="neutral-site")]
+    pub neutral_site: Option<bool>,
+
     /// A path to a file specifying the game's home team
     #[arg(long="home")]
     pub home: String,
