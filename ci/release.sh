@@ -52,13 +52,13 @@ function add_release_asset() {
     fi
 
     # Rename the asset file
-    cp "${WORKDIR}/target/release/${asset_file_name}" \
-        "${WORKDIR}/target/release/${new_asset_file_name}"
+    cp "${WORKDIR}/target/${platform}/release/${asset_file_name}" \
+        "${WORKDIR}/target/${platform}/release/${new_asset_file_name}"
 
     # Upload the renamed asset
     create_release_asset \
         "${upload_url}" \
-        "${WORKDIR}/target/release/${new_asset_file_name}"
+        "${WORKDIR}/target/${platform}/release/${new_asset_file_name}"
 }
 
 ### Create release asset
