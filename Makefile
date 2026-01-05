@@ -16,6 +16,7 @@ build-dependencies:
 
 build:
 	cross build $(BUILD_ARGS)
+	ls ./target/$(PLATFORM)/release
 
 lint:
 	cargo clippy $(LINT_ARGS)
