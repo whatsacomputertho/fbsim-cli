@@ -46,22 +46,7 @@ pub fn game_sim(args: FbsimGameSimArgs) -> Result<(), String> {
     let playback_speed: f64 = args.playback_speed.unwrap_or(2.0);
 
     // Load the neutral site argument
-    let neutral_site: bool = match args.neutral_site {
-        Some(x) => x,
-        None => false
-    };
-
-    // Load the neutral site argument
-    let neutral_site: bool = match args.neutral_site {
-        Some(x) => x,
-        None => false
-    };
-
-    // Load the neutral site argument
-    let neutral_site: bool = match args.neutral_site {
-        Some(x) => x,
-        None => false
-    };
+    let neutral_site: bool = args.neutral_site.unwrap_or(false);
 
     // Initialize a new context and RNG
     let mut rng = rand::thread_rng();
