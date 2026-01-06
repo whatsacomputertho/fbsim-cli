@@ -8,27 +8,15 @@ pub struct FbsimLeagueSeasonTeamAddArgs {
     #[arg(long="league")]
     pub league: String,
 
-    /// The ID of the team in the league
+    /// The input filepath for the team
     #[arg(short='t')]
     #[arg(long="team")]
-    pub id: usize,
+    pub team: String,
 
-    /// The team name
-    #[arg(short='n')]
-    #[arg(long="name")]
-    pub name: String,
-
-    /// The base64 encoded team logo
-    #[arg(long="logo")]
-    pub logo: String,
-
-    /// The team's offensive overall
-    #[arg(long="offense")]
-    pub offense: u32,
-
-    /// The team's defensive overall
-    #[arg(long="defense")]
-    pub defense: u32,
+    /// The ID of the team in the league
+    #[arg(short='i')]
+    #[arg(long="id")]
+    pub id: usize
 }
 
 /// Display a team from a FootballSim season

@@ -34,7 +34,7 @@ pub fn list_season_weeks(args: FbsimLeagueSeasonWeekListArgs) -> Result<(), Stri
         writeln!(
             &mut tw, "{}\t{}\t{}", i+1,
             week.matchups().len(),
-            week.matchups().iter().filter(|m| *m.complete()).collect::<Vec<_>>().len()
+            week.matchups().iter().filter(|m| m.context().game_over()).collect::<Vec<_>>().len()
         ).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
