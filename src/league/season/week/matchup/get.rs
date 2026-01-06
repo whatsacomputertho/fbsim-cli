@@ -51,13 +51,16 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
     let away_team = season.team(*matchup.away_team()).unwrap().name();
     let home_team = season.team(*matchup.home_team()).unwrap().name();
 
+    // Get the game context
+    let context = matchup.context();
+
     // Display the matchup in a table
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw,"Away Team\tAway Score\tHome Team\tHome Score").map_err(|e| e.to_string())?;
     writeln!(
         &mut tw,"{}\t{}\t{}\t{}",
-        away_team, matchup.away_score(),
-        home_team, matchup.home_score()
+        away_team, context.away_score(),
+        home_team, context.home_score()
     ).map_err(|e| e.to_string())?;
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
