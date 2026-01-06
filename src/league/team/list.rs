@@ -36,12 +36,12 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
         // Get the most recent team name
         let team = if !matchups.matchups().is_empty() {
             if let Some((year, _)) = matchups.matchups().iter().next_back() {
-                league.season(*year).unwrap().team(*id).unwrap().name().clone()
+                league.season(*year).unwrap().team(*id).unwrap().name()
             } else {
-                "(No Name)".to_string()
+                "(No Name)"
             }
         } else {
-            "(No Name)".to_string()
+            "(No Name)"
         };
 
         writeln!(&mut tw, "{}\t{}\t{}\t{}", id, team, matchups.matchups().len(), matchups.record()).map_err(|e| e.to_string())?;

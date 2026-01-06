@@ -240,7 +240,7 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-beta.1"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#988c5d27b4fce8657c936f6e79b0fac92793d5f5"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=main#4bdaf717d323f76aeab94066785cda004bad8a7c"
 dependencies = [
  "chrono",
  "lazy_static",

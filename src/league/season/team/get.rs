@@ -49,12 +49,13 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
     for (i, matchup) in matchups.matchups().iter().enumerate() {
         match matchup {
             Some(m) => {
+                let context = m.context();
                 let away_team = season.team(*m.away_team()).unwrap().name();
                 let home_team = season.team(*m.home_team()).unwrap().name();
                 writeln!(
                     &mut tw, "{}\t{}\t{}\t{}\t{}", i+1,
-                    home_team, m.home_score(),
-                    away_team, m.away_score()
+                    home_team, context.home_score(),
+                    away_team, context.away_score()
                 ).map_err(|e| e.to_string())?;
             },
             None => {
