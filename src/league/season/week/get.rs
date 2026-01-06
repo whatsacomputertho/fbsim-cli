@@ -41,11 +41,14 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
         let away_team = season.team(*matchup.away_team()).unwrap().name();
         let home_team = season.team(*matchup.home_team()).unwrap().name();
 
+        // Get the game context
+        let context = matchup.context();
+
         // Display the matchup
         writeln!(
             &mut tw,"{}\t{}\t{}\t{}\t{}", i,
-            away_team, matchup.away_score(),
-            home_team, matchup.home_score()
+            away_team, context.away_score(),
+            home_team, context.home_score()
         ).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;

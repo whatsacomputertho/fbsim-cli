@@ -1,7 +1,7 @@
 use std::fs;
 
+use fbsim_core::team::FootballTeam;
 use fbsim_core::league::League;
-use fbsim_core::league::season::team::LeagueSeasonTeam;
 
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamAddArgs;
 
@@ -20,11 +20,18 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Create the league season team and add to the season
-    let season_team = match LeagueSeasonTeam::from_properties(args.name, args.logo, args.offense, args.defense) {
-        Ok(team) => team,
-        Err(error) => return Err(format!("Error creating team: {}", error)),
+    // Load the team from its file
+    let season_team_file_res = &fs::read_to_string(&args.team);
+    let season_team_file = match season_team_file_res {
+        Ok(file) => file,
+        Err(e) => return Err(format!("Error loading team file: {}", e)),
     };
+    let season_team: FootballTeam = match serde_json::from_str(season_team_file) {
+        Ok(team) => team,
+        Err(e) => return Err(format!("Error loading team: {}", e)),
+    };
+
+    // Add the team to the season
     if let Err(e) = league.add_season_team(args.id, season_team) {
         return Err(format!("Failed to add team to season: {}", e));
     }
