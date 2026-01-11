@@ -1,4 +1,8 @@
+pub mod play;
+
 use clap::{Subcommand, Args};
+
+use crate::cli::league::season::week::matchup::play::FbsimLeagueSeasonWeekMatchupPlaySubcommand;
 
 /// Display a matchup from a week of a FootballSim season
 #[derive(Args, Clone)]
@@ -27,6 +31,11 @@ pub struct FbsimLeagueSeasonWeekMatchupGetArgs {
 /// Simulate a matchup from a week of a FootballSim season
 #[derive(Args, Clone)]
 pub struct FbsimLeagueSeasonWeekMatchupSimArgs {
+    /// The playback speed
+    #[arg(short='s')]
+    #[arg(long="speed")]
+    pub playback_speed: Option<f64>,
+
     /// The input filepath for the league
     #[arg(short='l')]
     #[arg(long="league")]
@@ -47,5 +56,9 @@ pub struct FbsimLeagueSeasonWeekMatchupSimArgs {
 #[derive(Subcommand, Clone)]
 pub enum FbsimLeagueSeasonWeekMatchupSubcommand {
     Get(FbsimLeagueSeasonWeekMatchupGetArgs),
-    Sim(FbsimLeagueSeasonWeekMatchupSimArgs)
+    Sim(FbsimLeagueSeasonWeekMatchupSimArgs),
+    Play {
+        #[command(subcommand)]
+        command: FbsimLeagueSeasonWeekMatchupPlaySubcommand
+    }
 }

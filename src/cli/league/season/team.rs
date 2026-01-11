@@ -1,4 +1,8 @@
+pub mod stats;
+
 use clap::{Subcommand, Args};
+
+use crate::cli::league::season::team::stats::FbsimLeagueSeasonTeamStatsSubcommand;
 
 /// Add a team to a new FootballSim season
 #[derive(Args, Clone)]
@@ -57,5 +61,9 @@ pub struct FbsimLeagueSeasonTeamListArgs {
 pub enum FbsimLeagueSeasonTeamSubcommand {
     Add(FbsimLeagueSeasonTeamAddArgs),
     Get(FbsimLeagueSeasonTeamGetArgs),
-    List(FbsimLeagueSeasonTeamListArgs)
+    List(FbsimLeagueSeasonTeamListArgs),
+    Stats {
+        #[command(subcommand)]
+        command: FbsimLeagueSeasonTeamStatsSubcommand
+    }
 }
