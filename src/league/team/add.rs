@@ -34,5 +34,7 @@ pub fn add_team(args: FbsimLeagueTeamAddArgs) -> Result<(), String> {
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     };
+
+    println!("Team added to league");
     Ok(())
 }

@@ -1,13 +1,12 @@
 use std::fs;
 
-use fbsim_core::team::FootballTeam;
 use fbsim_core::league::League;
 
-use crate::cli::league::season::team::FbsimLeagueSeasonTeamAddArgs;
+use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSimArgs;
 
 use serde_json;
 
-pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String> {
+pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String> {
     // Load the league from its file as mutable
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -20,24 +19,25 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Load the team from its file
-    let season_team_file_res = &fs::read_to_string(&args.team);
-    let season_team_file = match season_team_file_res {
-        Ok(file) => file,
-        Err(e) => return Err(format!("Error loading team file: {}", e)),
-    };
-    let season_team: FootballTeam = match serde_json::from_str(season_team_file) {
-        Ok(team) => team,
-        Err(e) => return Err(format!("Error loading team: {}", e)),
+    // Get the current season
+    let season = match league.current_season_mut() {
+        Some(s) => s,
+        None => return Err(String::from("No current season found")),
     };
 
-    // Get team name for confirmation message
-    let team_name = season_team.name().to_string();
-
-    // Add the team to the season
-    if let Err(e) = league.add_season_team(args.id, season_team) {
-        return Err(format!("Failed to add team to season: {}", e));
+    // Simulate the playoffs
+    let mut rng = rand::thread_rng();
+    if let Err(e) = season.sim_playoffs(&mut rng) {
+        return Err(format!("Failed to simulate playoffs: {}", e));
     }
+
+    // Get the champion
+    let champion_msg = if let Some(champion_id) = season.playoffs().champion() {
+        let champion = season.team(champion_id).unwrap();
+        format!("Champion: {}", champion.name())
+    } else {
+        String::from("Playoffs complete")
+    };
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -52,6 +52,6 @@ pub fn add_season_team(args: FbsimLeagueSeasonTeamAddArgs) -> Result<(), String>
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("{} added to season with ID {}", team_name, args.id);
+    println!("{}", champion_msg);
     Ok(())
 }

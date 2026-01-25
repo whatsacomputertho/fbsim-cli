@@ -29,7 +29,7 @@ pub fn get_team(args: FbsimLeagueTeamGetArgs) -> Result<(), String> {
     };
 
     // Get the team's matchups, if none then the team has never participated
-    let matchups: LeagueMatchups = league.team_matchups(args.team);
+    let matchups: LeagueMatchups = league.team_matchups(args.team)?;
     if matchups.matchups().is_empty() {
         return Err(format!("Team with ID {} has not participated in a season", args.team));
     }

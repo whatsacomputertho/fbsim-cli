@@ -25,6 +25,12 @@ pub fn add_season(args: FbsimLeagueSeasonAddArgs) -> Result<(), String> {
         return Err(format!("Error adding season: {}", e));
     }
 
+    // Get the new season year for confirmation message
+    let year = match league.current_season() {
+        Some(s) => *s.year(),
+        None => 0,
+    };
+
     // Serialize the league as JSON
     let league_str_res = serde_json::to_string_pretty(&league);
     let league_str: String = match league_str_res {
@@ -37,5 +43,7 @@ pub fn add_season(args: FbsimLeagueSeasonAddArgs) -> Result<(), String> {
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
+
+    println!("Season {} added to league", year);
     Ok(())
 }

@@ -2,6 +2,7 @@ use std::fs;
 use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
+use fbsim_core::league::matchup::LeagueTeamRecord;
 
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamGetArgs;
 
@@ -36,12 +37,49 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
     // Get the league season team's matchups from the league season
     let matchups = season.team_matchups(args.id)?;
 
+    // Get playoff information
+    let playoffs = season.playoffs();
+    let playoff_record = playoffs.record(args.id).ok();
+    let playoffs_started = playoffs.started();
+    let playoffs_complete = playoffs.complete();
+    let is_champion = playoffs_complete && playoffs.champion() == Some(args.id);
+
+    // Calculate total record (regular season + playoffs)
+    let regular_record = matchups.record();
+    let mut total_record = LeagueTeamRecord::new();
+    total_record.increment_wins(*regular_record.wins());
+    total_record.increment_losses(*regular_record.losses());
+    total_record.increment_ties(*regular_record.ties());
+    if let Some(pr) = &playoff_record {
+        total_record.increment_wins(*pr.wins());
+        total_record.increment_losses(*pr.losses());
+        total_record.increment_ties(*pr.ties());
+    }
+
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "Team:\t{}", team.name()).map_err(|e| e.to_string())?;
-    writeln!(&mut tw, "Record:\t{}\n", matchups.record()).map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "Record:\t{}", total_record).map_err(|e| e.to_string())?;
 
-    // Display each matchup
+    // Display playoff record only if playoffs have started
+    if playoffs_started {
+        match &playoff_record {
+            None => writeln!(&mut tw, "Playoff Record:\tN/A").map_err(|e| e.to_string())?,
+            Some(pr) if *pr.wins() > 0 || *pr.losses() > 0 || *pr.ties() > 0 => {
+                writeln!(&mut tw, "Playoff Record:\t{}", pr).map_err(|e| e.to_string())?;
+            }
+            _ => {}
+        }
+    }
+
+    // Display champion status only if playoffs are complete
+    if playoffs_complete && is_champion {
+        writeln!(&mut tw, "Champion:\tYes").map_err(|e| e.to_string())?;
+    }
+
+    writeln!(&mut tw).map_err(|e| e.to_string())?;
+
+    // Display each regular season matchup
     writeln!(
         &mut tw,
         "Week\tHome Team\tHome Score\tAway Team\tAway Score"
@@ -65,6 +103,46 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             },
         }
     }
+
+    // Display playoff matchups if the team participated
+    let rounds = playoffs.rounds();
+    let mut has_playoff_matchups = false;
+    for round in rounds.iter() {
+        for matchup in round.matchups().iter() {
+            if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
+                has_playoff_matchups = true;
+                break;
+            }
+        }
+        if has_playoff_matchups {
+            break;
+        }
+    }
+
+    if has_playoff_matchups {
+        writeln!(&mut tw, "\nPlayoffs").map_err(|e| e.to_string())?;
+        writeln!(
+            &mut tw,
+            "Round\tHome Team\tHome Score\tAway Team\tAway Score"
+        ).map_err(|e| e.to_string())?;
+
+        for (round_id, round) in rounds.iter().enumerate() {
+            for matchup in round.matchups().iter() {
+                if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
+                    let context = matchup.context();
+                    let away_team = season.team(*matchup.away_team()).unwrap().name();
+                    let home_team = season.team(*matchup.home_team()).unwrap().name();
+                    writeln!(
+                        &mut tw, "{}\t{}\t{}\t{}\t{}",
+                        round_id,
+                        home_team, context.home_score(),
+                        away_team, context.away_score()
+                    ).map_err(|e| e.to_string())?;
+                }
+            }
+        }
+    }
+
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }
