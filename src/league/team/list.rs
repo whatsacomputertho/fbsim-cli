@@ -31,7 +31,7 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
     // Get the collection of teams from the league
     let teams: &BTreeMap<usize, LeagueTeam> = league.teams();
     for (id, _) in teams.iter() {
-        let matchups: LeagueMatchups = league.team_matchups(*id);
+        let matchups: LeagueMatchups = league.team_matchups(*id)?;
 
         // Get the most recent team name
         let team = if !matchups.matchups().is_empty() {
@@ -58,12 +58,13 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
         for (year, _) in matchups.matchups().iter() {
             if let Some(season) = league.season(*year) {
                 let playoffs = season.playoffs();
-                let season_playoff_record = playoffs.record(*id);
-                total_record.increment_wins(*season_playoff_record.wins());
-                total_record.increment_losses(*season_playoff_record.losses());
-                total_record.increment_ties(*season_playoff_record.ties());
+                if let Ok(season_playoff_record) = playoffs.record(*id) {
+                    total_record.increment_wins(*season_playoff_record.wins());
+                    total_record.increment_losses(*season_playoff_record.losses());
+                    total_record.increment_ties(*season_playoff_record.ties());
+                }
 
-                if playoffs.in_championship(*id) {
+                if let Ok(true) = playoffs.in_championship(*id) {
                     championship_appearances += 1;
                 }
 

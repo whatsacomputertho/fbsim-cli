@@ -39,31 +39,22 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
 
     // Get playoff information
     let playoffs = season.playoffs();
-    let playoff_record = playoffs.record(args.id);
+    let playoff_record = playoffs.record(args.id).ok();
     let playoffs_started = playoffs.started();
     let playoffs_complete = playoffs.complete();
     let is_champion = playoffs_complete && playoffs.champion() == Some(args.id);
 
-    // Check if team was in playoffs by looking for any playoff matchups
-    let mut in_playoffs = false;
-    for round in playoffs.rounds().iter() {
-        for matchup in round.matchups().iter() {
-            if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
-                in_playoffs = true;
-                break;
-            }
-        }
-        if in_playoffs {
-            break;
-        }
-    }
-
     // Calculate total record (regular season + playoffs)
     let regular_record = matchups.record();
     let mut total_record = LeagueTeamRecord::new();
-    total_record.increment_wins(*regular_record.wins() + *playoff_record.wins());
-    total_record.increment_losses(*regular_record.losses() + *playoff_record.losses());
-    total_record.increment_ties(*regular_record.ties() + *playoff_record.ties());
+    total_record.increment_wins(*regular_record.wins());
+    total_record.increment_losses(*regular_record.losses());
+    total_record.increment_ties(*regular_record.ties());
+    if let Some(pr) = &playoff_record {
+        total_record.increment_wins(*pr.wins());
+        total_record.increment_losses(*pr.losses());
+        total_record.increment_ties(*pr.ties());
+    }
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
@@ -72,10 +63,12 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
 
     // Display playoff record only if playoffs have started
     if playoffs_started {
-        if !in_playoffs {
-            writeln!(&mut tw, "Playoff Record:\tN/A").map_err(|e| e.to_string())?;
-        } else if *playoff_record.wins() > 0 || *playoff_record.losses() > 0 || *playoff_record.ties() > 0 {
-            writeln!(&mut tw, "Playoff Record:\t{}", playoff_record).map_err(|e| e.to_string())?;
+        match &playoff_record {
+            None => writeln!(&mut tw, "Playoff Record:\tN/A").map_err(|e| e.to_string())?,
+            Some(pr) if *pr.wins() > 0 || *pr.losses() > 0 || *pr.ties() > 0 => {
+                writeln!(&mut tw, "Playoff Record:\t{}", pr).map_err(|e| e.to_string())?;
+            }
+            _ => {}
         }
     }
 

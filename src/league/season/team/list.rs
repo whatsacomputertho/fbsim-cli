@@ -44,27 +44,11 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
 
     for (id, team) in teams.iter() {
         let matchups: LeagueSeasonMatchups = season.team_matchups(*id)?;
-        let playoff_record = playoffs.record(*id);
-
-        // Check if team was in playoffs by looking for any playoff matchups
-        let mut in_playoffs = false;
-        for round in playoffs.rounds().iter() {
-            for matchup in round.matchups().iter() {
-                if *matchup.home_team() == *id || *matchup.away_team() == *id {
-                    in_playoffs = true;
-                    break;
-                }
-            }
-            if in_playoffs {
-                break;
-            }
-        }
 
         // Display playoff record based on whether team was in playoffs
-        let playoff_record_str = if !in_playoffs {
-            String::from("-")
-        } else {
-            playoff_record.to_string()
+        let playoff_record_str = match playoffs.record(*id) {
+            Ok(playoff_record) => playoff_record.to_string(),
+            Err(_) => String::from("-"),
         };
 
         if playoffs_complete {
