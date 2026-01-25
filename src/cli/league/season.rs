@@ -1,9 +1,11 @@
+pub mod playoffs;
 pub mod schedule;
 pub mod team;
 pub mod week;
 
 use clap::{Subcommand, Args};
 
+use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSubcommand;
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleSubcommand;
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekSubcommand;
@@ -56,6 +58,10 @@ pub enum FbsimLeagueSeasonSubcommand {
     Get(FbsimLeagueSeasonGetArgs),
     List(FbsimLeagueSeasonListArgs),
     Sim(FbsimLeagueSeasonSimArgs),
+    Playoffs {
+        #[command(subcommand)]
+        command: FbsimLeagueSeasonPlayoffsSubcommand
+    },
     Schedule {
         #[command(subcommand)]
         command: FbsimLeagueSeasonScheduleSubcommand

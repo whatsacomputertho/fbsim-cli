@@ -3,12 +3,12 @@ use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 
-use crate::cli::league::season::week::FbsimLeagueSeasonWeekGetArgs;
+use crate::cli::league::season::playoffs::round::FbsimLeagueSeasonPlayoffsRoundGetArgs;
 
 use serde_json;
 use tabwriter::TabWriter;
 
-pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String> {
+pub fn get_playoffs_round(args: FbsimLeagueSeasonPlayoffsRoundGetArgs) -> Result<(), String> {
     // Load the league from its file
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -21,27 +21,33 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the league season
+    // Get the season
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
 
-    // Get the league season week from the league season
-    let week = match season.weeks().get(args.week) {
-        Some(week) => week,
-        None => return Err(format!("No week found in season {} with id: {}", args.year, args.week)),
+    // Get the playoffs
+    let playoffs = season.playoffs();
+    let rounds = playoffs.rounds();
+
+    if rounds.is_empty() {
+        return Err(format!("Playoffs have not been generated for the {} season", args.year));
+    }
+
+    // Get the round
+    let round = match rounds.get(args.round) {
+        Some(r) => r,
+        None => return Err(format!("No playoff round found with index: {}", args.round)),
     };
 
-    // Display each matchup in the week in a table
+    // Display the round
+    println!("Playoff Round {} - {} Season", args.round, args.year);
     let mut tw = TabWriter::new(stdout());
-    writeln!(&mut tw,"Matchup\tAway Team\tAway Score\tHome Team\tHome Score\tStatus").map_err(|e| e.to_string())?;
-    for (i, matchup) in week.matchups().iter().enumerate() {
-        // Get the team names
+    writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score\tStatus").map_err(|e| e.to_string())?;
+    for (matchup_idx, matchup) in round.matchups().iter().enumerate() {
         let away_team = season.team(*matchup.away_team()).unwrap().name();
         let home_team = season.team(*matchup.home_team()).unwrap().name();
-
-        // Get the game context
         let context = matchup.context();
         let status = if context.game_over() {
             "Final"
@@ -50,15 +56,15 @@ pub fn get_season_week(args: FbsimLeagueSeasonWeekGetArgs) -> Result<(), String>
         } else {
             "Pending"
         };
-
-        // Display the matchup
         writeln!(
-            &mut tw,"{}\t{}\t{}\t{}\t{}\t{}", i,
+            &mut tw, "{}\t{}\t{}\t{}\t{}\t{}",
+            matchup_idx,
             away_team, context.away_score(),
             home_team, context.home_score(),
             status
         ).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
+
     Ok(())
 }

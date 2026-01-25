@@ -22,13 +22,6 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // TODO: Calculate a summary of each team's performance over the season
-    // TODO: Display the summary in a nice looking way (not JSON)
-
-    // Display the results in a table
-    let mut tw = TabWriter::new(stdout());
-    writeln!(&mut tw, "Team\tRecord").map_err(|e| e.to_string())?;
-
     // Get the league season
     let season = match league.season(args.year) {
         Some(season) => season,
@@ -37,12 +30,34 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
 
     // Get the league season teams from the league season
     let teams = season.teams();
+    let playoffs = season.playoffs();
+    let playoffs_complete = playoffs.complete();
+    let champion_id = playoffs.champion();
+
+    // Display the results in a table
+    let mut tw = TabWriter::new(stdout());
+    if playoffs_complete {
+        writeln!(&mut tw, "Team\tRecord\tPlayoffs\tChampion").map_err(|e| e.to_string())?;
+    } else {
+        writeln!(&mut tw, "Team\tRecord\tPlayoffs").map_err(|e| e.to_string())?;
+    }
+
     for (id, team) in teams.iter() {
         let matchups: LeagueSeasonMatchups = season.team_matchups(*id)?;
 
-        // TODO: Replace the ID with the most recent team name
+        // Display playoff record based on whether team was in playoffs
+        let playoff_record_str = match playoffs.record(*id) {
+            Ok(playoff_record) => playoff_record.to_string(),
+            Err(_) => String::from("-"),
+        };
 
-        writeln!(&mut tw, "{}\t{}", team.name(), matchups.record()).map_err(|e| e.to_string())?;
+        if playoffs_complete {
+            // Check if this team is the champion
+            let champion_str = if champion_id == Some(*id) { "X" } else { "" };
+            writeln!(&mut tw, "{}\t{}\t{}\t{}", team.name(), matchups.record(), playoff_record_str, champion_str).map_err(|e| e.to_string())?;
+        } else {
+            writeln!(&mut tw, "{}\t{}\t{}", team.name(), matchups.record(), playoff_record_str).map_err(|e| e.to_string())?;
+        }
     }
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())

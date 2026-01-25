@@ -18,9 +18,11 @@ pub fn create_league(args: FbsimLeagueCreateArgs) -> Result<(), String> {
     };
 
     // Write the league to its output file
-    let write_res = fs::write(args.output_file, league_str);
+    let write_res = fs::write(&args.output_file, league_str);
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
+
+    println!("League created at {}", args.output_file);
     Ok(())
 }
