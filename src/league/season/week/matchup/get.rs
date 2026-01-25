@@ -99,7 +99,8 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
             passing.yards(), passing.touchdowns(), passing.interceptions()
         ).map_err(|e| e.to_string())?;
     } else {
-        writeln!(&mut tw, "{}\tPending", home_team).map_err(|e| e.to_string())?;
+        let status = if context.started() { "In Progress" } else { "Pending" };
+        writeln!(&mut tw, "{}\t{}", home_team, status).map_err(|e| e.to_string())?;
     }
     if let Some(away_stats) = away_stats_opt {
         let passing = away_stats.passing();
@@ -123,7 +124,8 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
             passing.yards(), passing.touchdowns(), passing.interceptions()
         ).map_err(|e| e.to_string())?;
     } else {
-        writeln!(&mut tw, "{}\tPending", away_team).map_err(|e| e.to_string())?;
+        let status = if context.started() { "In Progress" } else { "Pending" };
+        writeln!(&mut tw, "{}\t{}", away_team, status).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
 
@@ -155,7 +157,8 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
             rushing.touchdowns(), rushing.fumbles()
         ).map_err(|e| e.to_string())?;
     } else {
-        writeln!(&mut tw, "{}\tPending", home_team).map_err(|e| e.to_string())?;
+        let status = if context.started() { "In Progress" } else { "Pending" };
+        writeln!(&mut tw, "{}\t{}", home_team, status).map_err(|e| e.to_string())?;
     }
     if let Some(away_stats) = away_stats_opt {
         let rushing = away_stats.rushing();
@@ -179,7 +182,8 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
             rushing.touchdowns(), rushing.fumbles()
         ).map_err(|e| e.to_string())?;
     } else {
-        writeln!(&mut tw, "{}\tPending", away_team).map_err(|e| e.to_string())?;
+        let status = if context.started() { "In Progress" } else { "Pending" };
+        writeln!(&mut tw, "{}\t{}", away_team, status).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())

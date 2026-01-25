@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use fbsim_core::league::League;
 use fbsim_core::league::team::LeagueTeam;
-use fbsim_core::league::matchup::LeagueMatchups;
+use fbsim_core::league::matchup::{LeagueMatchups, LeagueTeamRecord};
 
 use crate::cli::league::team::FbsimLeagueTeamListArgs;
 
@@ -26,7 +26,7 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
-    writeln!(&mut tw, "ID\tTeam\tSeasons\tRecord").map_err(|e| e.to_string())?;
+    writeln!(&mut tw, "ID\tTeam\tSeasons\tRecord\tChamp. Apps\tChampionships").map_err(|e| e.to_string())?;
 
     // Get the collection of teams from the league
     let teams: &BTreeMap<usize, LeagueTeam> = league.teams();
@@ -44,7 +44,42 @@ pub fn list_teams(args: FbsimLeagueTeamListArgs) -> Result<(), String> {
             "(No Name)"
         };
 
-        writeln!(&mut tw, "{}\t{}\t{}\t{}", id, team, matchups.matchups().len(), matchups.record()).map_err(|e| e.to_string())?;
+        // Start with regular season record
+        let regular_season_record = matchups.record();
+        let mut total_record = LeagueTeamRecord::new();
+        total_record.increment_wins(*regular_season_record.wins());
+        total_record.increment_losses(*regular_season_record.losses());
+        total_record.increment_ties(*regular_season_record.ties());
+
+        // Add playoff record and calculate championship stats across all seasons
+        let mut championship_appearances: usize = 0;
+        let mut championships: usize = 0;
+
+        for (year, _) in matchups.matchups().iter() {
+            if let Some(season) = league.season(*year) {
+                let playoffs = season.playoffs();
+                let season_playoff_record = playoffs.record(*id);
+                total_record.increment_wins(*season_playoff_record.wins());
+                total_record.increment_losses(*season_playoff_record.losses());
+                total_record.increment_ties(*season_playoff_record.ties());
+
+                if playoffs.in_championship(*id) {
+                    championship_appearances += 1;
+                }
+
+                if let Some(champion_id) = playoffs.champion() {
+                    if champion_id == *id {
+                        championships += 1;
+                    }
+                }
+            }
+        }
+
+        writeln!(
+            &mut tw, "{}\t{}\t{}\t{}\t{}\t{}",
+            id, team, matchups.matchups().len(), total_record,
+            championship_appearances, championships
+        ).map_err(|e| e.to_string())?;
     }
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())

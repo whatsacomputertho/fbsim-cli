@@ -40,6 +40,12 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
         return Err(format!("Error generating league schedule: {}", e));
     }
 
+    // Get schedule info for confirmation message
+    let num_weeks = match league.current_season() {
+        Some(s) => s.weeks().len(),
+        None => 0,
+    };
+
     // Serialize the league as JSON
     let league_str: String = match serde_json::to_string_pretty(&league) {
         Ok(league_str) => league_str,
@@ -51,5 +57,7 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     };
+
+    println!("Schedule generated with {} weeks", num_weeks);
     Ok(())
 }
