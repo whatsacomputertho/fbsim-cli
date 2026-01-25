@@ -238,6 +238,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "fbsim-core"
+version = "1.0.0-beta.1"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=release-1.0#cb41b20d6dda5b304521876f1d78758907862aa8"
+dependencies = [
+ "chrono",
+ "lazy_static",
+ "rand",
+ "rand_distr",
+ "serde",
+ "statrs",
+ "tokio",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
