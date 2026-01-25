@@ -19,6 +19,9 @@ use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
 use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleSubcommand;
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 use crate::cli::league::season::team::stats::FbsimLeagueSeasonTeamStatsSubcommand;
+use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSubcommand;
+use crate::cli::league::season::playoffs::round::FbsimLeagueSeasonPlayoffsRoundSubcommand;
+use crate::cli::league::season::playoffs::round::matchup::FbsimLeagueSeasonPlayoffsRoundMatchupSubcommand;
 use crate::cli::league::season::week::FbsimLeagueSeasonWeekSubcommand;
 use crate::cli::league::season::week::matchup::FbsimLeagueSeasonWeekMatchupSubcommand;
 use crate::cli::league::season::week::matchup::play::FbsimLeagueSeasonWeekMatchupPlaySubcommand;
@@ -48,6 +51,13 @@ use crate::league::season::team::list::list_season_teams;
 use crate::league::season::team::stats::passing::list_season_passing;
 use crate::league::season::team::stats::rushing::list_season_rushing;
 use crate::league::season::team::stats::receiving::list_season_receiving;
+use crate::league::season::playoffs::gen::gen_playoffs;
+use crate::league::season::playoffs::get::get_playoffs;
+use crate::league::season::playoffs::sim::sim_playoffs;
+use crate::league::season::playoffs::round::get::get_playoffs_round;
+use crate::league::season::playoffs::round::sim::sim_playoffs_round;
+use crate::league::season::playoffs::round::matchup::get::get_playoffs_matchup;
+use crate::league::season::playoffs::round::matchup::sim::sim_playoffs_matchup;
 use crate::league::season::week::get::get_season_week;
 use crate::league::season::week::list::list_season_weeks;
 use crate::league::season::week::sim::sim_season_week;
@@ -104,6 +114,19 @@ fn main() {
                         FbsimLeagueSeasonTeamStatsSubcommand::Passing(args) => list_season_passing(args.clone()),
                         FbsimLeagueSeasonTeamStatsSubcommand::Receiving(args) => list_season_receiving(args.clone()),
                         FbsimLeagueSeasonTeamStatsSubcommand::Rushing(args) => list_season_rushing(args.clone())
+                    }
+                },
+                FbsimLeagueSeasonSubcommand::Playoffs{ command } => match command {
+                    FbsimLeagueSeasonPlayoffsSubcommand::Gen(args) => gen_playoffs(args.clone()),
+                    FbsimLeagueSeasonPlayoffsSubcommand::Get(args) => get_playoffs(args.clone()),
+                    FbsimLeagueSeasonPlayoffsSubcommand::Sim(args) => sim_playoffs(args.clone()),
+                    FbsimLeagueSeasonPlayoffsSubcommand::Round{ command } => match command {
+                        FbsimLeagueSeasonPlayoffsRoundSubcommand::Get(args) => get_playoffs_round(args.clone()),
+                        FbsimLeagueSeasonPlayoffsRoundSubcommand::Sim(args) => sim_playoffs_round(args.clone()),
+                        FbsimLeagueSeasonPlayoffsRoundSubcommand::Matchup{ command } => match command {
+                            FbsimLeagueSeasonPlayoffsRoundMatchupSubcommand::Get(args) => get_playoffs_matchup(args.clone()),
+                            FbsimLeagueSeasonPlayoffsRoundMatchupSubcommand::Sim(args) => sim_playoffs_matchup(args.clone())
+                        }
                     }
                 },
                 FbsimLeagueSeasonSubcommand::Schedule{ command } => match command {

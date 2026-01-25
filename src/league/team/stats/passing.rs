@@ -35,7 +35,7 @@ pub fn list_passing(args: FbsimLeagueTeamStatsPassingArgs) -> Result<(), String>
     // Get the collection of teams from the league
     let teams: &BTreeMap<usize, LeagueTeam> = league.teams();
     for (id, _) in teams.iter() {
-        let matchups: LeagueMatchups = league.team_matchups(*id);
+        let matchups: LeagueMatchups = league.team_matchups(*id)?;
 
         // Get the most recent team name
         let team = if !matchups.matchups().is_empty() {
