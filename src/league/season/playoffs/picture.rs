@@ -39,6 +39,9 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
     if season.weeks().is_empty() {
         return Err(format!("Season {} has no schedule generated yet.", args.year));
     }
+    let weeks_remaining = season.weeks().iter().filter(
+            |w| !w.complete()
+        ).count();
 
     // Get the playoff picture
     let picture = season.playoff_picture(args.num_playoff_teams)?;
@@ -46,7 +49,7 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
     // Display header
     println!("Playoff Picture for {} Season", args.year);
     println!("Top {} teams make the playoffs", args.num_playoff_teams);
-    println!("Games remaining in season: {}", picture.games_remaining_in_season());
+    println!("Weeks remaining in season: {}", weeks_remaining);
     println!();
 
     // Display teams in playoff position
@@ -124,7 +127,6 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
     println!("  x- = Clinched playoff berth");
     println!("  GB = Games behind playoff cutoff");
     println!("  Magic # = Wins needed to clinch (X = clinched)");
-
     Ok(())
 }
 

@@ -69,13 +69,19 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
                 Err(_) => String::from("-"),
             };
             let champion_str = if champion_id == Some(*id) { "X" } else { "" };
-            writeln!(&mut tw, "{}\t{}\t{}\t{}", team.name(), matchups.record(), playoff_record_str, champion_str).map_err(|e| e.to_string())?;
+            writeln!(
+                &mut tw, "{}\t{}\t{}\t{}",
+                team.name(), matchups.record(), playoff_record_str, champion_str
+            ).map_err(|e| e.to_string())?;
         } else if playoffs_started {
             let playoff_record_str = match playoffs.record(*id) {
                 Ok(playoff_record) => playoff_record.to_string(),
                 Err(_) => String::from("-"),
             };
-            writeln!(&mut tw, "{}\t{}\t{}", team.name(), matchups.record(), playoff_record_str).map_err(|e| e.to_string())?;
+            writeln!(
+                &mut tw, "{}\t{}\t{}",
+                team.name(), matchups.record(), playoff_record_str
+            ).map_err(|e| e.to_string())?;
         } else if let Some(ref picture) = playoff_picture {
             if let Some(entry) = picture.team_status(*id) {
                 let status_str = format_short_status(entry.status());
@@ -89,12 +95,21 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
                     Some(m) => m.to_string(),
                     None => "-".to_string(),
                 };
-                writeln!(&mut tw, "{}\t{}\t{}\t{}\t{}", team.name(), matchups.record(), status_str, gb_str, magic_str).map_err(|e| e.to_string())?;
+                writeln!(
+                    &mut tw, "{}\t{}\t{}\t{}\t{}",
+                    team.name(), matchups.record(), status_str, gb_str, magic_str
+                ).map_err(|e| e.to_string())?;
             } else {
-                writeln!(&mut tw, "{}\t{}\t-\t-\t-", team.name(), matchups.record()).map_err(|e| e.to_string())?;
+                writeln!(
+                    &mut tw, "{}\t{}\t-\t-\t-",
+                    team.name(), matchups.record()
+                ).map_err(|e| e.to_string())?;
             }
         } else {
-            writeln!(&mut tw, "{}\t{}", team.name(), matchups.record()).map_err(|e| e.to_string())?;
+            writeln!(
+                &mut tw, "{}\t{}",
+                team.name(), matchups.record()
+            ).map_err(|e| e.to_string())?;
         }
     }
     tw.flush().map_err(|e| e.to_string())?;
