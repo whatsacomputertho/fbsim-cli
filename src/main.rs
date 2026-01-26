@@ -53,6 +53,7 @@ use crate::league::season::team::stats::rushing::list_season_rushing;
 use crate::league::season::team::stats::receiving::list_season_receiving;
 use crate::league::season::playoffs::gen::gen_playoffs;
 use crate::league::season::playoffs::get::get_playoffs;
+use crate::league::season::playoffs::picture::get_playoffs_picture;
 use crate::league::season::playoffs::sim::sim_playoffs;
 use crate::league::season::playoffs::round::get::get_playoffs_round;
 use crate::league::season::playoffs::round::sim::sim_playoffs_round;
@@ -119,6 +120,7 @@ fn main() {
                 FbsimLeagueSeasonSubcommand::Playoffs{ command } => match command {
                     FbsimLeagueSeasonPlayoffsSubcommand::Gen(args) => gen_playoffs(args.clone()),
                     FbsimLeagueSeasonPlayoffsSubcommand::Get(args) => get_playoffs(args.clone()),
+                    FbsimLeagueSeasonPlayoffsSubcommand::Picture(args) => get_playoffs_picture(args.clone()),
                     FbsimLeagueSeasonPlayoffsSubcommand::Sim(args) => sim_playoffs(args.clone()),
                     FbsimLeagueSeasonPlayoffsSubcommand::Round{ command } => match command {
                         FbsimLeagueSeasonPlayoffsRoundSubcommand::Get(args) => get_playoffs_round(args.clone()),
