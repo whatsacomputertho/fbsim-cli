@@ -3,6 +3,7 @@ use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 use fbsim_core::league::matchup::LeagueTeamRecord;
+use fbsim_core::league::season::playoffs::picture::PlayoffStatus;
 
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamGetArgs;
 
@@ -77,6 +78,28 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
         writeln!(&mut tw, "Champion:\tYes").map_err(|e| e.to_string())?;
     }
 
+    // Display playoff picture status during regular season
+    if season.started() && !season.regular_season_complete() && !playoffs_started {
+        if let Ok(picture) = season.playoff_picture(args.num_playoff_teams) {
+            if let Some(entry) = picture.team_status(args.id) {
+                let status_str = format_playoff_status(entry.status());
+                writeln!(&mut tw, "Playoff Status:\t{}", status_str).map_err(|e| e.to_string())?;
+
+                if entry.games_back() > 0.0 {
+                    writeln!(&mut tw, "Games Back:\t{:.1}", entry.games_back()).map_err(|e| e.to_string())?;
+                }
+
+                if let Some(magic) = entry.magic_number() {
+                    if magic > 0 {
+                        writeln!(&mut tw, "Magic Number:\t{}", magic).map_err(|e| e.to_string())?;
+                    }
+                }
+
+                writeln!(&mut tw, "Remaining Games:\t{}", entry.remaining_games()).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
     writeln!(&mut tw).map_err(|e| e.to_string())?;
 
     // Display each regular season matchup
@@ -145,4 +168,15 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
 
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// Format PlayoffStatus enum for display
+fn format_playoff_status(status: &PlayoffStatus) -> String {
+    match status {
+        PlayoffStatus::ClinchedTopSeed => "Clinched #1 Seed".to_string(),
+        PlayoffStatus::ClinchedPlayoffs { current_seed } => format!("Clinched (Seed #{})", current_seed),
+        PlayoffStatus::InPlayoffPosition { current_seed } => format!("In Position (Seed #{})", current_seed),
+        PlayoffStatus::InTheHunt => "In The Hunt".to_string(),
+        PlayoffStatus::Eliminated => "Eliminated".to_string(),
+    }
 }
