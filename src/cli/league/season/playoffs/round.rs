@@ -21,6 +21,11 @@ pub struct FbsimLeagueSeasonPlayoffsRoundGetArgs {
     #[arg(short='r')]
     #[arg(long="round")]
     pub round: usize,
+
+    /// Get conference-specific round (optional, for conference playoffs)
+    #[arg(short='c')]
+    #[arg(long="conference")]
+    pub conference: Option<usize>,
 }
 
 /// Simulate a playoff round
@@ -35,6 +40,11 @@ pub struct FbsimLeagueSeasonPlayoffsRoundSimArgs {
     #[arg(short='r')]
     #[arg(long="round")]
     pub round: usize,
+
+    /// Simulate conference-specific round (optional, for conference playoffs)
+    #[arg(short='c')]
+    #[arg(long="conference")]
+    pub conference: Option<usize>,
 }
 
 /// Manage rounds in the playoffs

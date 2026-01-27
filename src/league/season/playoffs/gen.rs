@@ -27,9 +27,38 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
 
     // Generate the playoffs
     let mut rng = rand::thread_rng();
-    if let Err(e) = season.generate_playoffs(args.num_teams, &mut rng) {
-        return Err(format!("Failed to generate playoffs: {}", e));
-    }
+
+    let result_msg = if args.per_conference {
+        // Validate conferences exist
+        if season.conferences().is_empty() {
+            return Err(String::from(
+                "Per-conference playoffs (-p) require conferences to be defined. \
+                Use 'league season conference add' first."
+            ));
+        }
+
+        // Generate conference playoffs
+        if let Err(e) = season.generate_playoffs_with_conferences(
+            args.num_teams,
+            args.division_winners,
+            &mut rng
+        ) {
+            return Err(format!("Failed to generate playoffs: {}", e));
+        }
+
+        let num_conferences = season.conferences().len();
+        format!(
+            "Conference playoffs generated with {} teams per conference ({} conferences)",
+            args.num_teams, num_conferences
+        )
+    } else {
+        // Generate traditional playoffs
+        if let Err(e) = season.generate_playoffs(args.num_teams, &mut rng) {
+            return Err(format!("Failed to generate playoffs: {}", e));
+        }
+
+        format!("Playoffs generated with {} teams", args.num_teams)
+    };
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -44,6 +73,6 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("Playoffs generated with {} teams", args.num_teams);
+    println!("{}", result_msg);
     Ok(())
 }

@@ -1,12 +1,13 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::conference::LeagueConference;
 
-use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSimArgs;
+use crate::cli::league::season::conference::FbsimLeagueSeasonConferenceAddArgs;
 
 use serde_json;
 
-pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String> {
+pub fn add_conference(args: FbsimLeagueSeasonConferenceAddArgs) -> Result<(), String> {
     // Load the league from its file as mutable
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -25,19 +26,12 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         None => return Err(String::from("No current season found")),
     };
 
-    // Simulate the playoffs (handles both traditional and conference playoffs)
-    let mut rng = rand::thread_rng();
-    if let Err(e) = season.sim_playoffs(&mut rng) {
-        return Err(format!("Failed to simulate playoffs: {}", e));
-    }
+    // Get the index before adding
+    let conf_index = season.conferences().len();
 
-    // Get the champion
-    let champion_msg = if let Some(champion_id) = season.playoffs().champion() {
-        let champion = season.team(champion_id).unwrap();
-        format!("Champion: {}", champion.name())
-    } else {
-        String::from("Playoffs complete")
-    };
+    // Add the conference
+    let conference = LeagueConference::with_name(&args.name);
+    season.add_conference(conference);
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -52,6 +46,6 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("{}", champion_msg);
+    println!("Conference '{}' added with index {}", args.name, conf_index);
     Ok(())
 }

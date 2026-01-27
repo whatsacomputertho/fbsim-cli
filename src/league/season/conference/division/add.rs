@@ -1,12 +1,13 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::conference::LeagueDivision;
 
-use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSimArgs;
+use crate::cli::league::season::conference::division::FbsimLeagueSeasonConferenceDivisionAddArgs;
 
 use serde_json;
 
-pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String> {
+pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<(), String> {
     // Load the league from its file as mutable
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -25,19 +26,15 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         None => return Err(String::from("No current season found")),
     };
 
-    // Simulate the playoffs (handles both traditional and conference playoffs)
-    let mut rng = rand::thread_rng();
-    if let Err(e) = season.sim_playoffs(&mut rng) {
-        return Err(format!("Failed to simulate playoffs: {}", e));
-    }
-
-    // Get the champion
-    let champion_msg = if let Some(champion_id) = season.playoffs().champion() {
-        let champion = season.team(champion_id).unwrap();
-        format!("Champion: {}", champion.name())
-    } else {
-        String::from("Playoffs complete")
+    // Get the conference
+    let conference = match season.conference_mut(args.conference) {
+        Some(c) => c,
+        None => return Err(format!("No conference found with index: {}", args.conference)),
     };
+
+    // Add the division
+    let division = LeagueDivision::with_name(&args.name);
+    conference.add_division(args.id, division);
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -52,6 +49,6 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("{}", champion_msg);
+    println!("Division '{}' added to conference {} with ID {}", args.name, args.conference, args.id);
     Ok(())
 }

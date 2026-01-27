@@ -16,6 +16,8 @@ use crate::cli::league::FbsimLeagueSubcommand;
 use crate::cli::league::team::FbsimLeagueTeamSubcommand;
 use crate::cli::league::team::stats::FbsimLeagueTeamStatsSubcommand;
 use crate::cli::league::season::FbsimLeagueSeasonSubcommand;
+use crate::cli::league::season::conference::FbsimLeagueSeasonConferenceSubcommand;
+use crate::cli::league::season::conference::division::FbsimLeagueSeasonConferenceDivisionSubcommand;
 use crate::cli::league::season::schedule::FbsimLeagueSeasonScheduleSubcommand;
 use crate::cli::league::season::team::FbsimLeagueSeasonTeamSubcommand;
 use crate::cli::league::season::team::stats::FbsimLeagueSeasonTeamStatsSubcommand;
@@ -44,8 +46,16 @@ use crate::league::season::add::add_season;
 use crate::league::season::get::get_season;
 use crate::league::season::list::list_seasons;
 use crate::league::season::sim::sim_season;
+use crate::league::season::standings::get_standings;
+use crate::league::season::conference::add::add_conference;
+use crate::league::season::conference::get::get_conference;
+use crate::league::season::conference::list::list_conferences;
+use crate::league::season::conference::division::add::add_division;
+use crate::league::season::conference::division::get::get_division;
+use crate::league::season::conference::division::list::list_divisions;
 use crate::league::season::schedule::generate_schedule;
 use crate::league::season::team::add::add_season_team;
+use crate::league::season::team::assign::assign_team;
 use crate::league::season::team::get::get_season_team;
 use crate::league::season::team::list::list_season_teams;
 use crate::league::season::team::stats::passing::list_season_passing;
@@ -107,8 +117,20 @@ fn main() {
                 FbsimLeagueSeasonSubcommand::Get(args) => get_season(args.clone()),
                 FbsimLeagueSeasonSubcommand::List(args) => list_seasons(args.clone()),
                 FbsimLeagueSeasonSubcommand::Sim(args) => sim_season(args.clone()),
+                FbsimLeagueSeasonSubcommand::Standings(args) => get_standings(args.clone()),
+                FbsimLeagueSeasonSubcommand::Conference{ command } => match command {
+                    FbsimLeagueSeasonConferenceSubcommand::Add(args) => add_conference(args.clone()),
+                    FbsimLeagueSeasonConferenceSubcommand::Get(args) => get_conference(args.clone()),
+                    FbsimLeagueSeasonConferenceSubcommand::List(args) => list_conferences(args.clone()),
+                    FbsimLeagueSeasonConferenceSubcommand::Division{ command } => match command {
+                        FbsimLeagueSeasonConferenceDivisionSubcommand::Add(args) => add_division(args.clone()),
+                        FbsimLeagueSeasonConferenceDivisionSubcommand::Get(args) => get_division(args.clone()),
+                        FbsimLeagueSeasonConferenceDivisionSubcommand::List(args) => list_divisions(args.clone())
+                    }
+                },
                 FbsimLeagueSeasonSubcommand::Team{ command } => match command {
                     FbsimLeagueSeasonTeamSubcommand::Add(args) => add_season_team(args.clone()),
+                    FbsimLeagueSeasonTeamSubcommand::Assign(args) => assign_team(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::Get(args) => get_season_team(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::List(args) => list_season_teams(args.clone()),
                     FbsimLeagueSeasonTeamSubcommand::Stats{ command } => match command {
