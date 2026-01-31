@@ -41,27 +41,33 @@ pub fn get_playoffs_round(args: FbsimLeagueSeasonPlayoffsRoundGetArgs) -> Result
 
 fn display_traditional_round(
     season: &fbsim_core::league::season::LeagueSeason,
-    round_idx: usize,
+    round_index: usize,
     year: usize
 ) -> Result<(), String> {
     let playoffs = season.playoffs();
-    let rounds = playoffs.rounds();
+    let brackets = playoffs.conference_brackets();
 
-    if rounds.is_empty() {
+    if brackets.is_empty() {
         return Err(format!("Playoffs have not been generated for the {} season", year));
     }
 
-    // Get the round
-    let round = match rounds.get(round_idx) {
+    // For traditional (non-conference) playoffs, use the first (only) bracket
+    let rounds = match brackets.values().next() {
         Some(r) => r,
-        None => return Err(format!("No playoff round found with index: {}", round_idx)),
+        None => return Err(format!("No playoff bracket found for the {} season", year)),
+    };
+
+    // Get the round
+    let round = match rounds.get(round_index) {
+        Some(r) => r,
+        None => return Err(format!("No playoff round found with index: {}", round_index)),
     };
 
     // Display the round
-    println!("Playoff Round {} - {} Season", round_idx, year);
+    println!("Playoff Round {} - {} Season", round_index, year);
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score\tStatus").map_err(|e| e.to_string())?;
-    for (matchup_idx, matchup) in round.matchups().iter().enumerate() {
+    for (matchup_index, matchup) in round.matchups().iter().enumerate() {
         let away_team = season.team(*matchup.away_team()).unwrap().name();
         let home_team = season.team(*matchup.home_team()).unwrap().name();
         let context = matchup.context();
@@ -74,7 +80,7 @@ fn display_traditional_round(
         };
         writeln!(
             &mut tw, "{}\t{}\t{}\t{}\t{}\t{}",
-            matchup_idx,
+            matchup_index,
             away_team, context.away_score(),
             home_team, context.home_score(),
             status
@@ -87,35 +93,35 @@ fn display_traditional_round(
 
 fn display_conference_round(
     season: &fbsim_core::league::season::LeagueSeason,
-    round_idx: usize,
+    round_index: usize,
     filter_conference: Option<usize>,
     year: usize
 ) -> Result<(), String> {
     let playoffs = season.playoffs();
-    let conference_rounds = playoffs.conference_rounds();
+    let conference_brackets = playoffs.conference_brackets();
     let conferences = season.conferences();
 
-    if conference_rounds.is_empty() {
+    if conference_brackets.is_empty() {
         return Err(format!("Conference playoffs have not been generated for the {} season", year));
     }
 
-    for (conf_idx, conf_rounds) in conference_rounds.iter() {
+    for (conf_index, conf_rounds) in conference_brackets.iter() {
         // Skip if filtering to specific conference
         if let Some(filter) = filter_conference {
-            if filter != *conf_idx {
+            if filter != *conf_index {
                 continue;
             }
         }
 
-        let conf_name = conferences.get(*conf_idx)
+        let conf_name = conferences.get(*conf_index)
             .map(|c| c.name().to_string())
-            .unwrap_or_else(|| format!("Conference {}", conf_idx));
+            .unwrap_or_else(|| format!("Conference {}", conf_index));
 
-        if let Some(round) = conf_rounds.get(round_idx) {
-            println!("=== {} Round {} - {} Season ===", conf_name, round_idx, year);
+        if let Some(round) = conf_rounds.get(round_index) {
+            println!("=== {} Round {} - {} Season ===", conf_name, round_index, year);
             let mut tw = TabWriter::new(stdout());
             writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score\tStatus").map_err(|e| e.to_string())?;
-            for (matchup_idx, matchup) in round.matchups().iter().enumerate() {
+            for (matchup_index, matchup) in round.matchups().iter().enumerate() {
                 let away_team = season.team(*matchup.away_team()).unwrap().name();
                 let home_team = season.team(*matchup.home_team()).unwrap().name();
                 let context = matchup.context();
@@ -128,28 +134,28 @@ fn display_conference_round(
                 };
                 writeln!(
                     &mut tw, "{}\t{}\t{}\t{}\t{}\t{}",
-                    matchup_idx,
+                    matchup_index,
                     away_team, context.away_score(),
                     home_team, context.home_score(),
                     status
                 ).map_err(|e| e.to_string())?;
             }
             tw.flush().map_err(|e| e.to_string())?;
-            println!();
         } else if filter_conference.is_some() {
-            return Err(format!("No round {} found for conference {}", round_idx, conf_name));
+            return Err(format!("No round {} found for conference {}", round_index, conf_name));
         }
     }
 
     // Also display winners bracket if it exists
     let winners_bracket = playoffs.winners_bracket();
     if !winners_bracket.is_empty() {
+        println!();
         println!("=== Championship Bracket ===");
-        for (bracket_round_idx, round) in winners_bracket.iter().enumerate() {
-            println!("Championship Round {}", bracket_round_idx);
+        for (bracket_round_index, round) in winners_bracket.iter().enumerate() {
+            println!("Championship Round {}", bracket_round_index);
             let mut tw = TabWriter::new(stdout());
             writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score\tStatus").map_err(|e| e.to_string())?;
-            for (matchup_idx, matchup) in round.matchups().iter().enumerate() {
+            for (matchup_index, matchup) in round.matchups().iter().enumerate() {
                 let away_team = season.team(*matchup.away_team()).unwrap().name();
                 let home_team = season.team(*matchup.home_team()).unwrap().name();
                 let context = matchup.context();
@@ -162,7 +168,7 @@ fn display_conference_round(
                 };
                 writeln!(
                     &mut tw, "{}\t{}\t{}\t{}\t{}\t{}",
-                    matchup_idx,
+                    matchup_index,
                     away_team, context.away_score(),
                     home_team, context.home_score(),
                     status

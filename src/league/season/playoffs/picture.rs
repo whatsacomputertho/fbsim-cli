@@ -3,7 +3,7 @@ use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
 use fbsim_core::league::season::LeagueSeason;
-use fbsim_core::league::season::playoffs::picture::{PlayoffPicture, PlayoffStatus};
+use fbsim_core::league::season::playoffs::picture::{PlayoffPicture, PlayoffPictureOptions, PlayoffStatus};
 
 use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsPictureArgs;
 
@@ -57,8 +57,8 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
         display_conference_playoff_picture(season, &args, weeks_remaining)?;
     } else if has_conferences && args.conference.is_some() {
         // Display single conference
-        let conf_idx = args.conference.unwrap();
-        display_single_conference_picture(season, conf_idx, &args, weeks_remaining)?;
+        let conf_index = args.conference.unwrap();
+        display_single_conference_picture(season, conf_index, &args, weeks_remaining)?;
     } else {
         // Display traditional playoff picture
         display_traditional_playoff_picture(season, &args, weeks_remaining)?;
@@ -100,16 +100,20 @@ fn display_conference_playoff_picture(
     println!();
 
     // Get the conference-aware playoff picture
-    let picture = PlayoffPicture::from_season_with_conferences(
+    let options = PlayoffPictureOptions {
+        by_conference: Some(true),
+        division_winners_guaranteed: args.division_winners,
+    };
+    let picture = PlayoffPicture::from_season(
         season,
         args.num_playoff_teams,
-        args.division_winners
+        Some(options)
     )?;
 
-    for (conf_idx, conference) in conferences.iter().enumerate() {
+    for (conf_index, conference) in conferences.iter().enumerate() {
         // Skip if filtering to specific conference
         if let Some(filter_conf) = args.conference {
-            if filter_conf != conf_idx {
+            if filter_conf != conf_index {
                 continue;
             }
         }
@@ -117,7 +121,7 @@ fn display_conference_playoff_picture(
         println!("=== {} Playoff Picture ===", conference.name());
 
         // Filter the picture entries by conference
-        display_conference_playoff_picture_sections(&picture, season, conf_idx)?;
+        display_conference_playoff_picture_sections(&picture, season, conf_index)?;
     }
 
     display_legend();
@@ -127,11 +131,11 @@ fn display_conference_playoff_picture(
 fn display_conference_playoff_picture_sections(
     picture: &PlayoffPicture,
     season: &LeagueSeason,
-    conf_idx: usize
+    conf_index: usize
 ) -> Result<(), String> {
-    let conference = match season.conferences().get(conf_idx) {
+    let conference = match season.conferences().get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_idx)),
+        None => return Err(format!("No conference found with index: {}", conf_index)),
     };
     let conf_teams: Vec<usize> = conference.all_teams();
 
@@ -218,14 +222,14 @@ fn display_conference_playoff_picture_sections(
 
 fn display_single_conference_picture(
     season: &LeagueSeason,
-    conf_idx: usize,
+    conf_index: usize,
     args: &FbsimLeagueSeasonPlayoffsPictureArgs,
     weeks_remaining: usize
 ) -> Result<(), String> {
     let conferences = season.conferences();
-    let conference = match conferences.get(conf_idx) {
+    let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_idx)),
+        None => return Err(format!("No conference found with index: {}", conf_index)),
     };
 
     // Display header

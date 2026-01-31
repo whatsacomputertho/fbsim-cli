@@ -128,17 +128,32 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
     }
 
     // Display playoff matchups if the team participated
-    let rounds = playoffs.rounds();
     let mut has_playoff_matchups = false;
-    for round in rounds.iter() {
-        for matchup in round.matchups().iter() {
-            if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
-                has_playoff_matchups = true;
-                break;
+
+    // Check conference brackets
+    for rounds in playoffs.conference_brackets().values() {
+        for round in rounds.iter() {
+            for matchup in round.matchups().iter() {
+                if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
+                    has_playoff_matchups = true;
+                    break;
+                }
             }
+            if has_playoff_matchups { break; }
         }
-        if has_playoff_matchups {
-            break;
+        if has_playoff_matchups { break; }
+    }
+
+    // Check winners bracket
+    if !has_playoff_matchups {
+        for round in playoffs.winners_bracket().iter() {
+            for matchup in round.matchups().iter() {
+                if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
+                    has_playoff_matchups = true;
+                    break;
+                }
+            }
+            if has_playoff_matchups { break; }
         }
     }
 
@@ -149,15 +164,36 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             "Round\tHome Team\tHome Score\tAway Team\tAway Score"
         ).map_err(|e| e.to_string())?;
 
-        for (round_id, round) in rounds.iter().enumerate() {
+        for (conf_index, rounds) in playoffs.conference_brackets() {
+            let conf_label = season.conferences().get(*conf_index)
+                .map(|c| c.name().to_string())
+                .unwrap_or_else(|| format!("Conference {}", conf_index));
+            for (round_index, round) in rounds.iter().enumerate() {
+                for matchup in round.matchups().iter() {
+                    if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
+                        let context = matchup.context();
+                        let away_team = season.team(*matchup.away_team()).unwrap().name();
+                        let home_team = season.team(*matchup.home_team()).unwrap().name();
+                        writeln!(
+                            &mut tw, "{} Round {}\t{}\t{}\t{}\t{}",
+                            conf_label, round_index,
+                            home_team, context.home_score(),
+                            away_team, context.away_score()
+                        ).map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+        }
+
+        for (round_index, round) in playoffs.winners_bracket().iter().enumerate() {
             for matchup in round.matchups().iter() {
                 if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
                     let context = matchup.context();
                     let away_team = season.team(*matchup.away_team()).unwrap().name();
                     let home_team = season.team(*matchup.home_team()).unwrap().name();
                     writeln!(
-                        &mut tw, "{}\t{}\t{}\t{}\t{}",
-                        round_id,
+                        &mut tw, "Championship Round {}\t{}\t{}\t{}\t{}",
+                        round_index,
                         home_team, context.home_score(),
                         away_team, context.away_score()
                     ).map_err(|e| e.to_string())?;

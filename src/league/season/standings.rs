@@ -46,12 +46,12 @@ pub fn get_standings(args: FbsimLeagueSeasonStandingsArgs) -> Result<(), String>
             return Err(String::from("No conferences defined for this season"));
         }
         display_standings_by_conference(season)?;
-    } else if let Some(conf_idx) = args.conference {
+    } else if let Some(conf_index) = args.conference {
         // Filter by specific conference
         if let Some(div_id) = args.division {
-            display_division_standings(season, conf_idx, div_id)?;
+            display_division_standings(season, conf_index, div_id)?;
         } else {
-            display_conference_standings(season, conf_idx)?;
+            display_conference_standings(season, conf_index)?;
         }
     } else {
         // Display overall standings
@@ -88,10 +88,10 @@ fn display_standings_by_conference(
 ) -> Result<(), String> {
     let conferences = season.conferences();
 
-    for (conf_idx, conference) in conferences.iter().enumerate() {
+    for (conf_index, conference) in conferences.iter().enumerate() {
         println!("=== {} ===", conference.name());
 
-        let standings = season.conference_standings(conf_idx)?;
+        let standings = season.conference_standings(conf_index)?;
 
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Rank\tTeam\tRecord").map_err(|e| e.to_string())?;
@@ -119,13 +119,13 @@ fn display_standings_by_division(
 ) -> Result<(), String> {
     let conferences = season.conferences();
 
-    for (conf_idx, conference) in conferences.iter().enumerate() {
+    for (conf_index, conference) in conferences.iter().enumerate() {
         println!("=== {} ===", conference.name());
 
-        for (div_id, division) in conference.divisions() {
+        for (div_id, division) in conference.divisions().iter().enumerate() {
             println!("--- {} ---", division.name());
 
-            let standings = season.division_standings(conf_idx, *div_id)?;
+            let standings = season.division_standings(conf_index, div_id)?;
 
             let mut tw = TabWriter::new(stdout());
             writeln!(&mut tw, "Rank\tTeam\tRecord").map_err(|e| e.to_string())?;
@@ -151,17 +151,17 @@ fn display_standings_by_division(
 
 fn display_conference_standings(
     season: &fbsim_core::league::season::LeagueSeason,
-    conf_idx: usize
+    conf_index: usize
 ) -> Result<(), String> {
     let conferences = season.conferences();
-    let conference = match conferences.get(conf_idx) {
+    let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_idx)),
+        None => return Err(format!("No conference found with index: {}", conf_index)),
     };
 
     println!("=== {} ===", conference.name());
 
-    let standings = season.conference_standings(conf_idx)?;
+    let standings = season.conference_standings(conf_index)?;
 
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "Rank\tTeam\tRecord").map_err(|e| e.to_string())?;
@@ -184,13 +184,13 @@ fn display_conference_standings(
 
 fn display_division_standings(
     season: &fbsim_core::league::season::LeagueSeason,
-    conf_idx: usize,
+    conf_index: usize,
     div_id: usize
 ) -> Result<(), String> {
     let conferences = season.conferences();
-    let conference = match conferences.get(conf_idx) {
+    let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_idx)),
+        None => return Err(format!("No conference found with index: {}", conf_index)),
     };
 
     let division = match conference.division(div_id) {
@@ -200,7 +200,7 @@ fn display_division_standings(
 
     println!("=== {} - {} ===", conference.name(), division.name());
 
-    let standings = season.division_standings(conf_idx, div_id)?;
+    let standings = season.division_standings(conf_index, div_id)?;
 
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "Rank\tTeam\tRecord").map_err(|e| e.to_string())?;

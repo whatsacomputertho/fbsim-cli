@@ -47,7 +47,7 @@ pub fn list_divisions(args: FbsimLeagueSeasonConferenceDivisionListArgs) -> Resu
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "ID\tName\tTeams").map_err(|e| e.to_string())?;
 
-    for (div_id, division) in divisions {
+    for (div_id, division) in divisions.iter().enumerate() {
         writeln!(
             &mut tw, "{}\t{}\t{}",
             div_id,

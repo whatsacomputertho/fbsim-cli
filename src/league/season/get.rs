@@ -58,16 +58,37 @@ pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
 
     // Display playoff information
     let playoffs = season.playoffs();
-    let rounds = playoffs.rounds();
-    if !rounds.is_empty() {
+    if playoffs.started() {
         writeln!(&mut tw, "\nPlayoffs ({} teams)", playoffs.num_teams()).map_err(|e| e.to_string())?;
-        writeln!(&mut tw, "Round\tMatchups\tSimulated").map_err(|e| e.to_string())?;
-        for (i, round) in rounds.iter().enumerate() {
-            let simulated = round.matchups().iter().filter(|m| m.context().game_over()).count();
-            writeln!(
-                &mut tw, "{}\t{}\t{}",
-                i, round.matchups().len(), simulated
-            ).map_err(|e| e.to_string())?;
+
+        // Display conference brackets
+        for (conf_index, rounds) in playoffs.conference_brackets() {
+            let conf_name = season.conferences().get(*conf_index)
+                .map(|c| c.name().to_string())
+                .unwrap_or_else(|| format!("Conference {}", conf_index));
+            writeln!(&mut tw, "\n{}", conf_name).map_err(|e| e.to_string())?;
+            writeln!(&mut tw, "Round\tMatchups\tSimulated").map_err(|e| e.to_string())?;
+            for (i, round) in rounds.iter().enumerate() {
+                let simulated = round.matchups().iter().filter(|m| m.context().game_over()).count();
+                writeln!(
+                    &mut tw, "{}\t{}\t{}",
+                    i, round.matchups().len(), simulated
+                ).map_err(|e| e.to_string())?;
+            }
+        }
+
+        // Display winners bracket
+        let winners = playoffs.winners_bracket();
+        if !winners.is_empty() {
+            writeln!(&mut tw, "\nChampionship Bracket").map_err(|e| e.to_string())?;
+            writeln!(&mut tw, "Round\tMatchups\tSimulated").map_err(|e| e.to_string())?;
+            for (i, round) in winners.iter().enumerate() {
+                let simulated = round.matchups().iter().filter(|m| m.context().game_over()).count();
+                writeln!(
+                    &mut tw, "{}\t{}\t{}",
+                    i, round.matchups().len(), simulated
+                ).map_err(|e| e.to_string())?;
+            }
         }
 
         // Display champion if playoffs are complete
@@ -76,7 +97,7 @@ pub fn get_season(args: FbsimLeagueSeasonGetArgs) -> Result<(), String> {
                 let champion = season.team(champion_id).unwrap();
                 writeln!(&mut tw, "\nChampion: {}", champion.name()).map_err(|e| e.to_string())?;
             }
-        } else if playoffs.started() {
+        } else {
             writeln!(&mut tw, "\nPlayoffs in progress").map_err(|e| e.to_string())?;
         }
     }

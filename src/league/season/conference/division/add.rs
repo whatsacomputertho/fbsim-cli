@@ -34,7 +34,7 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
 
     // Add the division
     let division = LeagueDivision::with_name(&args.name);
-    conference.add_division(args.id, division);
+    conference.add_division(division);
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -49,6 +49,6 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("Division '{}' added to conference {} with ID {}", args.name, args.conference, args.id);
+    println!("Division '{}' added to conference {}", args.name, args.conference);
     Ok(())
 }

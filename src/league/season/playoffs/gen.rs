@@ -1,6 +1,7 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::LeagueSeasonPlayoffOptions;
 
 use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsGenArgs;
 
@@ -28,6 +29,8 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
     // Generate the playoffs
     let mut rng = rand::thread_rng();
 
+    let mut options = LeagueSeasonPlayoffOptions::new();
+
     let result_msg = if args.per_conference {
         // Validate conferences exist
         if season.conferences().is_empty() {
@@ -38,11 +41,10 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
         }
 
         // Generate conference playoffs
-        if let Err(e) = season.generate_playoffs_with_conferences(
-            args.num_teams,
-            args.division_winners,
-            &mut rng
-        ) {
+        options.use_conference_brackets = true;
+        options.playoff_teams_per_conference = args.num_teams;
+        options.division_winners_guaranteed = args.division_winners;
+        if let Err(e) = season.generate_playoffs(options, &mut rng) {
             return Err(format!("Failed to generate playoffs: {}", e));
         }
 
@@ -53,7 +55,8 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
         )
     } else {
         // Generate traditional playoffs
-        if let Err(e) = season.generate_playoffs(args.num_teams, &mut rng) {
+        options.num_playoff_teams = args.num_teams;
+        if let Err(e) = season.generate_playoffs(options, &mut rng) {
             return Err(format!("Failed to generate playoffs: {}", e));
         }
 

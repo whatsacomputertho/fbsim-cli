@@ -5,7 +5,8 @@ use std::{thread, time};
 use crossterm::{cursor, terminal, QueueableCommand};
 
 use fbsim_core::league::League;
-use fbsim_core::game::play::Game;
+use fbsim_core::league::season::matchup::LeagueSeasonMatchup;
+use fbsim_core::game::play::{Drive, Game};
 use fbsim_core::game::play::result::{PlayResult, PlayTypeResult};
 
 use crate::cli::league::season::playoffs::round::matchup::FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs;
@@ -38,9 +39,16 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
                 Some(s) => s,
                 None => return Err(String::from("No current season found")),
             };
-            match season.sim_playoff_play(args.round, args.matchup, &mut rng) {
-                Ok(game_opt) => game_opt,
-                Err(error) => return Err(format!("Error simulating next play for playoff matchup: {}", error)),
+            if args.winners_bracket {
+                match season.sim_winners_bracket_play(args.round, args.matchup, &mut rng) {
+                    Ok(game_opt) => game_opt,
+                    Err(error) => return Err(format!("Error simulating next play for winners bracket matchup: {}", error)),
+                }
+            } else {
+                match season.sim_playoff_play(args.conference, args.round, args.matchup, &mut rng) {
+                    Ok(game_opt) => game_opt,
+                    Err(error) => return Err(format!("Error simulating next play for playoff matchup: {}", error)),
+                }
             }
         };
 
@@ -49,15 +57,8 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
             Some(s) => s,
             None => return Err(String::from("No current season found after simulating play"))
         };
-        let round = match season.playoffs().rounds().get(args.round) {
-            Some(r) => r,
-            None => return Err(format!("No playoff round found with index: {}", args.round)),
-        };
-        let matchup = match round.matchups().get(args.matchup) {
-            Some(m) => m,
-            None => return Err(format!("No matchup found with index: {}", args.matchup)),
-        };
-        let drive_opt = if let Some(g) = game_opt.as_ref() {
+        let matchup = get_matchup(season.playoffs(), &args)?;
+        let drive_opt: Option<&Drive> = if let Some(g) = game_opt.as_ref() {
             g.drives().last()
         } else {
             match matchup.game() {
@@ -122,14 +123,7 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
         Some(s) => s,
         None => return Err(String::from("No current season found after simulating game"))
     };
-    let round = match season.playoffs().rounds().get(args.round) {
-        Some(r) => r,
-        None => return Err(format!("No playoff round found with index: {}", args.round)),
-    };
-    let matchup = match round.matchups().get(args.matchup) {
-        Some(m) => m,
-        None => return Err(format!("No matchup found with index: {}", args.matchup)),
-    };
+    let matchup = get_matchup(season.playoffs(), &args)?;
     let home_stats = match matchup.home_stats() {
         Some(s) => s,
         None => return Err(String::from("Failed to get home stats after simulating game"))
@@ -153,19 +147,15 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
         away_stats
     );
 
-    // Generate the next round if this matchup completed the round and playoffs are not done
-    let round_complete = round.complete();
-    let playoffs_complete = season.playoffs().complete();
-
-    if round_complete && !playoffs_complete {
+    // Try to generate the next round if playoffs are not yet complete
+    if !season.playoffs().complete() {
         let season = match league.current_season_mut() {
             Some(s) => s,
             None => return Err(String::from("No current season found for generating next round")),
         };
-        if let Err(e) = season.generate_next_playoff_round(&mut rng) {
-            return Err(format!("Failed to generate next playoff round: {}", e));
+        if season.generate_next_playoff_round(&mut rng).is_ok() {
+            println!("\nNext playoff round generated!");
         }
-        println!("\nNext playoff round generated!");
     }
 
     // Serialize the league as JSON
@@ -181,4 +171,30 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
         return Err(format!("Error writing league file: {}", e));
     }
     Ok(())
+}
+
+fn get_matchup<'a>(
+    playoffs: &'a fbsim_core::league::season::playoffs::LeagueSeasonPlayoffs,
+    args: &FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs
+) -> Result<&'a LeagueSeasonMatchup, String> {
+    let round = if args.winners_bracket {
+        let winners = playoffs.winners_bracket();
+        match winners.get(args.round) {
+            Some(r) => r,
+            None => return Err(format!("No winners bracket round found with index: {}", args.round)),
+        }
+    } else {
+        let bracket = match playoffs.conference_bracket(args.conference) {
+            Some(b) => b,
+            None => return Err(format!("No conference bracket found with index: {}", args.conference)),
+        };
+        match bracket.get(args.round) {
+            Some(r) => r,
+            None => return Err(format!("No playoff round found with index: {}", args.round)),
+        }
+    };
+    match round.matchups().get(args.matchup) {
+        Some(m) => Ok(m),
+        None => Err(format!("No matchup found with index: {}", args.matchup)),
+    }
 }

@@ -27,16 +27,24 @@ pub fn get_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupGetArgs) 
 
     // Get the playoffs
     let playoffs = season.playoffs();
-    let rounds = playoffs.rounds();
 
-    if rounds.is_empty() {
-        return Err(format!("Playoffs have not been generated for the {} season", args.year));
-    }
-
-    // Get the round
-    let round = match rounds.get(args.round) {
-        Some(r) => r,
-        None => return Err(format!("No playoff round found with index: {}", args.round)),
+    // Get the round from the appropriate bracket
+    let round = if args.winners_bracket {
+        let winners = playoffs.winners_bracket();
+        match winners.get(args.round) {
+            Some(r) => r,
+            None => return Err(format!("No winners bracket round found with index: {}", args.round)),
+        }
+    } else {
+        let conf_index = args.conference.unwrap_or(0);
+        let bracket = match playoffs.conference_bracket(conf_index) {
+            Some(b) => b,
+            None => return Err(format!("No conference bracket found with index: {}", conf_index)),
+        };
+        match bracket.get(args.round) {
+            Some(r) => r,
+            None => return Err(format!("No playoff round found with index: {}", args.round)),
+        }
     };
 
     // Get the matchup

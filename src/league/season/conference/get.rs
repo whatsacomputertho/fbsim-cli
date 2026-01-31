@@ -46,7 +46,7 @@ pub fn get_conference(args: FbsimLeagueSeasonConferenceGetArgs) -> Result<(), St
     } else {
         writeln!(&mut tw, "Divisions:").map_err(|e| e.to_string())?;
         writeln!(&mut tw, "ID\tName\tTeams").map_err(|e| e.to_string())?;
-        for (div_id, division) in conference.divisions() {
+        for (div_id, division) in conference.divisions().iter().enumerate() {
             writeln!(
                 &mut tw, "{}\t{}\t{}",
                 div_id,
@@ -63,7 +63,7 @@ pub fn get_conference(args: FbsimLeagueSeasonConferenceGetArgs) -> Result<(), St
         writeln!(&mut tw).map_err(|e| e.to_string())?;
         writeln!(&mut tw, "Teams:").map_err(|e| e.to_string())?;
         writeln!(&mut tw, "ID\tName\tDivision").map_err(|e| e.to_string())?;
-        for (div_id, division) in conference.divisions() {
+        for division in conference.divisions() {
             for team_id in division.teams() {
                 if let Some(team) = season.team(*team_id) {
                     writeln!(
@@ -74,7 +74,6 @@ pub fn get_conference(args: FbsimLeagueSeasonConferenceGetArgs) -> Result<(), St
                     ).map_err(|e| e.to_string())?;
                 }
             }
-            let _ = div_id; // suppress unused warning
         }
     }
 
