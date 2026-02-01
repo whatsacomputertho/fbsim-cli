@@ -21,11 +21,32 @@ pub fn generate_schedule(args: FbsimLeagueSeasonScheduleGenArgs) -> Result<(), S
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
+    // Validate conference-based options
+    let has_conference_options = args.division_games.is_some()
+        || args.conference_games.is_some()
+        || args.cross_conference_games.is_some();
+
+    if has_conference_options {
+        let season = match league.current_season() {
+            Some(s) => s,
+            None => return Err(String::from("No current season found")),
+        };
+        if season.conferences().is_empty() {
+            return Err(String::from(
+                "Conference-based schedule options (--division-games, --conference-games, --cross-conference-games) \
+                require conferences to be defined. Use 'league season conference add' first."
+            ));
+        }
+    }
+
     // Initialize schedule gen options
     let options = LeagueSeasonScheduleOptions{
         weeks: args.weeks,
         shift: args.shift,
         permute: args.permute,
+        division_games: args.division_games,
+        conference_games: args.conference_games,
+        cross_conference_games: args.cross_conference_games,
     };
 
     // Attempt to generate a schedule for the league

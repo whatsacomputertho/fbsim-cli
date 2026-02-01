@@ -1,3 +1,4 @@
+pub mod display;
 pub mod gen;
 pub mod get;
 pub mod picture;

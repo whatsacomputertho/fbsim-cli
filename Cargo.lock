@@ -240,7 +240,7 @@ dependencies = [
 [[package]]
 name = "fbsim-core"
 version = "1.0.0-beta.1"
-source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=release-1.0#22b013674dc90e23abb03de35af44a92fb3f43a4"
+source = "git+https://github.com/whatsacomputertho/fbsim-core.git?branch=release-1.0#588d9ca40661699eebdcb9b917d03782f6bd1672"
 dependencies = [
  "chrono",
  "lazy_static",
@@ -254,9 +254,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.15"
+version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
+checksum = "335ff9f135e4384c8150d6f27c6daed433577f86b4750418338c01a1a2528592"
 dependencies = [
  "cfg-if",
  "libc",
