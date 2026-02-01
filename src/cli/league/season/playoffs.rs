@@ -12,10 +12,20 @@ pub struct FbsimLeagueSeasonPlayoffsGenArgs {
     #[arg(long="league")]
     pub league: String,
 
-    /// The number of teams in the playoffs
+    /// The number of teams in the playoffs (total, or per conference with -p flag)
     #[arg(short='n')]
     #[arg(long="num-teams")]
     pub num_teams: usize,
+
+    /// Enable multi-conference playoffs, where number of teams is per-conference
+    #[arg(short='p')]
+    #[arg(long="per-conference")]
+    pub per_conference: bool,
+
+    /// Guarantee division winners get playoff berths
+    #[arg(short='d')]
+    #[arg(long="division-winners")]
+    pub division_winners: bool,
 }
 
 /// Display the playoffs for a season
@@ -54,11 +64,26 @@ pub struct FbsimLeagueSeasonPlayoffsPictureArgs {
     #[arg(long="year")]
     pub year: usize,
 
-    /// Number of playoff teams
+    /// Number of playoff teams (total, or per conference with -p flag)
     #[arg(short='n')]
     #[arg(long="num-playoff-teams")]
     #[arg(default_value="4")]
     pub num_playoff_teams: usize,
+
+    /// Calculate multi-conference playoff picture, where number of teams is per-conference
+    #[arg(short='p')]
+    #[arg(long="per-conference")]
+    pub per_conference: bool,
+
+    /// Account for division winner guaranteed berths
+    #[arg(short='d')]
+    #[arg(long="division-winners")]
+    pub division_winners: bool,
+
+    /// Show only this conference (optional)
+    #[arg(short='c')]
+    #[arg(long="conference")]
+    pub conference: Option<usize>,
 }
 
 /// Manage playoffs for a season

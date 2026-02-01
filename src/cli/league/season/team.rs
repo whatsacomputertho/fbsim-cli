@@ -23,6 +23,30 @@ pub struct FbsimLeagueSeasonTeamAddArgs {
     pub id: usize
 }
 
+/// Assign a team to a division
+#[derive(Args, Clone)]
+pub struct FbsimLeagueSeasonTeamAssignArgs {
+    /// The input filepath for the league
+    #[arg(short='l')]
+    #[arg(long="league")]
+    pub league: String,
+
+    /// The ID of the team to assign
+    #[arg(short='t')]
+    #[arg(long="team")]
+    pub team: usize,
+
+    /// The conference ID
+    #[arg(short='c')]
+    #[arg(long="conference")]
+    pub conference: usize,
+
+    /// The division ID
+    #[arg(short='d')]
+    #[arg(long="division")]
+    pub division: usize,
+}
+
 /// Display a team from a FootballSim season
 #[derive(Args, Clone)]
 pub struct FbsimLeagueSeasonTeamGetArgs {
@@ -72,6 +96,7 @@ pub struct FbsimLeagueSeasonTeamListArgs {
 #[derive(Subcommand, Clone)]
 pub enum FbsimLeagueSeasonTeamSubcommand {
     Add(FbsimLeagueSeasonTeamAddArgs),
+    Assign(FbsimLeagueSeasonTeamAssignArgs),
     Get(FbsimLeagueSeasonTeamGetArgs),
     List(FbsimLeagueSeasonTeamListArgs),
     Stats {

@@ -26,6 +26,18 @@ pub struct FbsimLeagueSeasonScheduleGenArgs {
     #[arg(short='p')]
     #[arg(long="permute")]
     pub permute: Option<bool>,
+
+    /// Number of games per division opponent
+    #[arg(long="division-games")]
+    pub division_games: Option<usize>,
+
+    /// Number of games per non-division conference opponent
+    #[arg(long="conference-games")]
+    pub conference_games: Option<usize>,
+
+    /// Total number of cross-conference games
+    #[arg(long="cross-conference-games")]
+    pub cross_conference_games: Option<usize>,
 }
 
 /// Manage the schedule for the current season of a FootballSim league

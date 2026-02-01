@@ -1,6 +1,7 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::LeagueSeasonPlayoffOptions;
 
 use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsGenArgs;
 
@@ -27,9 +28,36 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
 
     // Generate the playoffs
     let mut rng = rand::thread_rng();
-    if let Err(e) = season.generate_playoffs(args.num_teams, &mut rng) {
-        return Err(format!("Failed to generate playoffs: {}", e));
-    }
+    let mut options = LeagueSeasonPlayoffOptions::new();
+    let result_msg = if args.per_conference {
+        // Validate conferences exist
+        if season.conferences().is_empty() {
+            return Err(String::from(
+                "Per-conference playoffs (-p) require conferences to be defined. \
+                Use 'league season conference add' first."
+            ));
+        }
+
+        // Generate conference playoffs
+        options.use_conference_brackets = true;
+        options.playoff_teams_per_conference = args.num_teams;
+        options.division_winners_guaranteed = args.division_winners;
+        if let Err(e) = season.generate_playoffs(options, &mut rng) {
+            return Err(format!("Failed to generate playoffs: {}", e));
+        }
+        let num_conferences = season.conferences().len();
+        format!(
+            "Conference playoffs generated with {} teams per conference ({} conferences)",
+            args.num_teams, num_conferences
+        )
+    } else {
+        // Generate traditional playoffs
+        options.num_playoff_teams = args.num_teams;
+        if let Err(e) = season.generate_playoffs(options, &mut rng) {
+            return Err(format!("Failed to generate playoffs: {}", e));
+        }
+        format!("Playoffs generated with {} teams", args.num_teams)
+    };
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -43,7 +71,6 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
-    println!("Playoffs generated with {} teams", args.num_teams);
+    println!("{}", result_msg);
     Ok(())
 }
