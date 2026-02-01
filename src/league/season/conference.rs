@@ -1,5 +1,4 @@
 pub mod add;
-pub mod assign;
 pub mod get;
 pub mod list;
-pub mod stats;
+pub mod division;

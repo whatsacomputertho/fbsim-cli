@@ -1,13 +1,13 @@
 use std::fs;
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::conference::LeagueDivision;
 
-use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSimArgs;
-use crate::league::season::playoffs::display;
+use crate::cli::league::season::conference::division::FbsimLeagueSeasonConferenceDivisionAddArgs;
 
 use serde_json;
 
-pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String> {
+pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<(), String> {
     // Load the league from its file as mutable
     let file_res = &fs::read_to_string(&args.league);
     let file = match file_res {
@@ -20,20 +20,23 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the current season
+    // Get the current season and conference
     let season = match league.current_season_mut() {
         Some(s) => s,
         None => return Err(String::from("No current season found")),
     };
+    let conference = match season.conference_mut(args.conference) {
+        Some(c) => c,
+        None => return Err(format!("No conference found with index: {}", args.conference)),
+    };
 
-    // Simulate the playoffs
-    let mut rng = rand::thread_rng();
-    if let Err(e) = season.sim_playoffs(&mut rng) {
-        return Err(format!("Failed to simulate playoffs: {}", e));
-    }
+    // Get the division ID and conference name before adding
+    let div_id = conference.divisions().len();
+    let conf_name = conference.name_mut().clone();
 
-    // Display the full playoff results
-    display::display_playoffs(season)?;
+    // Add the division
+    let division = LeagueDivision::with_name(&args.name);
+    conference.add_division(division)?;
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -47,5 +50,6 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
+    println!("Division {} added to conference {} with ID {}", args.name, conf_name, div_id);
     Ok(())
 }

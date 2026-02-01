@@ -17,10 +17,20 @@ pub struct FbsimLeagueSeasonPlayoffsRoundGetArgs {
     #[arg(long="year")]
     pub year: usize,
 
-    /// The playoff round index
+    /// The playoff round ID
     #[arg(short='r')]
     #[arg(long="round")]
     pub round: usize,
+
+    /// Get conference-specific round (optional, for multi-conference playoffs)
+    #[arg(short='c')]
+    #[arg(long="conference")]
+    pub conference: Option<usize>,
+
+    /// Get winners bracket round (optional, for multi-conference playoffs)
+    #[arg(short='w')]
+    #[arg(long="winners-bracket")]
+    pub winners_bracket: bool,
 }
 
 /// Simulate a playoff round
@@ -30,11 +40,6 @@ pub struct FbsimLeagueSeasonPlayoffsRoundSimArgs {
     #[arg(short='l')]
     #[arg(long="league")]
     pub league: String,
-
-    /// The playoff round index
-    #[arg(short='r')]
-    #[arg(long="round")]
-    pub round: usize,
 }
 
 /// Manage rounds in the playoffs
