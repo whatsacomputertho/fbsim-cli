@@ -23,11 +23,11 @@ pub struct FbsimLeagueSeasonStandingsArgs {
     #[arg(long="division")]
     pub division: Option<usize>,
 
-    /// Group output by conference
+    /// Group standings by conference
     #[arg(long="by-conference")]
     pub by_conference: bool,
 
-    /// Group output by division
+    /// Group standings by division
     #[arg(long="by-division")]
     pub by_division: bool,
 }

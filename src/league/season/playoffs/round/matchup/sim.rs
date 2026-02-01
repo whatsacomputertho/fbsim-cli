@@ -153,9 +153,7 @@ pub fn sim_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupSimArgs) 
             Some(s) => s,
             None => return Err(String::from("No current season found for generating next round")),
         };
-        if season.generate_next_playoff_round(&mut rng).is_ok() {
-            println!("\nNext playoff round generated!");
-        }
+        season.generate_next_playoff_round(&mut rng)?;
     }
 
     // Serialize the league as JSON

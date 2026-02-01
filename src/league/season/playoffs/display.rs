@@ -13,6 +13,7 @@ pub fn display_playoffs(season: &LeagueSeason) -> Result<(), String> {
             .unwrap_or_else(|| format!("Conference {}", conf_index));
         println!("=== {} Conference Playoffs ===", conf_name);
 
+        // Display conference bracket rounds
         for (round_index, round) in rounds.iter().enumerate() {
             println!("--- Round {} ---", round_index);
             let mut tw = TabWriter::new(stdout());
@@ -82,6 +83,5 @@ pub fn display_playoffs(season: &LeagueSeason) -> Result<(), String> {
     } else {
         println!("Playoffs in progress");
     }
-
     Ok(())
 }

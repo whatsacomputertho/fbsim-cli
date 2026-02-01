@@ -17,7 +17,7 @@ pub struct FbsimLeagueSeasonPlayoffsGenArgs {
     #[arg(long="num-teams")]
     pub num_teams: usize,
 
-    /// Treat num_teams as per-conference instead of total
+    /// Enable multi-conference playoffs, where number of teams is per-conference
     #[arg(short='p')]
     #[arg(long="per-conference")]
     pub per_conference: bool,
@@ -70,7 +70,7 @@ pub struct FbsimLeagueSeasonPlayoffsPictureArgs {
     #[arg(default_value="4")]
     pub num_playoff_teams: usize,
 
-    /// Treat num_playoff_teams as per-conference instead of total
+    /// Calculate multi-conference playoff picture, where number of teams is per-conference
     #[arg(short='p')]
     #[arg(long="per-conference")]
     pub per_conference: bool,

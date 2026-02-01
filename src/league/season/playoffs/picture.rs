@@ -62,7 +62,6 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
         // Display traditional playoff picture
         display_traditional_playoff_picture(season, &args, weeks_remaining)?;
     }
-
     Ok(())
 }
 
@@ -78,12 +77,11 @@ fn display_traditional_playoff_picture(
     };
     let picture = PlayoffPicture::from_season(season, args.num_playoff_teams, Some(options))?;
 
-    // Display header
+    // Display playoff picture
     println!("Playoff Picture for {} Season", args.year);
     println!("Top {} teams make the playoffs", args.num_playoff_teams);
     println!("Weeks remaining in season: {}", weeks_remaining);
     println!();
-
     display_playoff_picture_sections(&picture)?;
     display_legend();
     Ok(())
@@ -102,7 +100,7 @@ fn display_conference_playoff_picture(
     println!("Weeks remaining in season: {}", weeks_remaining);
     println!();
 
-    // Get the conference-aware playoff picture
+    // Get the conference-based playoff picture
     let options = PlayoffPictureOptions {
         by_conference: Some(true),
         division_winners_guaranteed: args.division_winners,
@@ -112,7 +110,6 @@ fn display_conference_playoff_picture(
         args.num_playoff_teams,
         Some(options)
     )?;
-
     for (conf_index, conference) in conferences.iter().enumerate() {
         // Skip if filtering to specific conference
         if let Some(filter_conf) = args.conference {
@@ -121,12 +118,10 @@ fn display_conference_playoff_picture(
             }
         }
 
+        // Display the playoff-picture
         println!("=== {} Playoff Picture ===", conference.name());
-
-        // Filter the picture entries by conference
         display_conference_playoff_picture_sections(&picture, season, conf_index)?;
     }
-
     display_legend();
     Ok(())
 }
@@ -151,7 +146,6 @@ fn display_conference_playoff_picture_sections(
         println!("IN PLAYOFF POSITION");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Seed\tTeam\tRecord\tStatus\tMagic #").map_err(|e| e.to_string())?;
-
         for (i, entry) in playoff_teams.iter().enumerate() {
             let status_str = format_status_indicator(entry.status());
             let magic_str = match entry.magic_number() {
@@ -182,7 +176,6 @@ fn display_conference_playoff_picture_sections(
         println!("IN THE HUNT");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Team\tRecord\tGB\tRemaining").map_err(|e| e.to_string())?;
-
         for entry in in_the_hunt.iter() {
             writeln!(
                 &mut tw,
@@ -206,7 +199,6 @@ fn display_conference_playoff_picture_sections(
         println!("ELIMINATED");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Team\tRecord\tGB").map_err(|e| e.to_string())?;
-
         for entry in eliminated.iter() {
             writeln!(
                 &mut tw,
@@ -219,7 +211,6 @@ fn display_conference_playoff_picture_sections(
         tw.flush().map_err(|e| e.to_string())?;
         println!();
     }
-
     Ok(())
 }
 
@@ -259,7 +250,6 @@ fn display_playoff_picture_sections(picture: &PlayoffPicture) -> Result<(), Stri
         println!("IN PLAYOFF POSITION");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Seed\tTeam\tRecord\tStatus\tMagic #").map_err(|e| e.to_string())?;
-
         for (i, entry) in playoff_teams.iter().enumerate() {
             let status_str = format_status_indicator(entry.status());
             let magic_str = match entry.magic_number() {
@@ -287,7 +277,6 @@ fn display_playoff_picture_sections(picture: &PlayoffPicture) -> Result<(), Stri
         println!("IN THE HUNT");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Team\tRecord\tGB\tRemaining").map_err(|e| e.to_string())?;
-
         for entry in in_the_hunt.iter() {
             writeln!(
                 &mut tw,
@@ -308,7 +297,6 @@ fn display_playoff_picture_sections(picture: &PlayoffPicture) -> Result<(), Stri
         println!("ELIMINATED");
         let mut tw = TabWriter::new(stdout());
         writeln!(&mut tw, "Team\tRecord\tGB").map_err(|e| e.to_string())?;
-
         for entry in eliminated.iter() {
             writeln!(
                 &mut tw,
@@ -321,7 +309,6 @@ fn display_playoff_picture_sections(picture: &PlayoffPicture) -> Result<(), Stri
         tw.flush().map_err(|e| e.to_string())?;
         println!();
     }
-
     Ok(())
 }
 

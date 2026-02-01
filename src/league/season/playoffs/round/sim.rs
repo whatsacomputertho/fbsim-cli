@@ -85,7 +85,6 @@ fn find_current_round(
     season: &LeagueSeason
 ) -> Result<(usize, bool), String> {
     let playoffs = season.playoffs();
-
     if playoffs.complete() {
         return Err(String::from("Playoffs are already complete"));
     }

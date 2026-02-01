@@ -45,7 +45,6 @@ pub fn add_conference(args: FbsimLeagueSeasonConferenceAddArgs) -> Result<(), St
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
     println!("Conference {} added to season with ID {}", args.name, conf_id);
     Ok(())
 }

@@ -10,7 +10,6 @@ pub fn display_traditional_round(
 ) -> Result<(), String> {
     let playoffs = season.playoffs();
     let brackets = playoffs.conference_brackets();
-
     if brackets.is_empty() {
         return Err(format!("Playoffs have not been generated for the {} season", year));
     }

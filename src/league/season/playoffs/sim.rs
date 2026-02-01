@@ -26,7 +26,7 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         None => return Err(String::from("No current season found")),
     };
 
-    // Simulate the playoffs (handles both traditional and conference playoffs)
+    // Simulate the playoffs
     let mut rng = rand::thread_rng();
     if let Err(e) = season.sim_playoffs(&mut rng) {
         return Err(format!("Failed to simulate playoffs: {}", e));
@@ -47,6 +47,5 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
     Ok(())
 }

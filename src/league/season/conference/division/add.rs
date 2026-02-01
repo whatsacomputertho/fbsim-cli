@@ -20,13 +20,11 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the current season
+    // Get the current season and conference
     let season = match league.current_season_mut() {
         Some(s) => s,
         None => return Err(String::from("No current season found")),
     };
-
-    // Get the conference
     let conference = match season.conference_mut(args.conference) {
         Some(c) => c,
         None => return Err(format!("No conference found with index: {}", args.conference)),
@@ -52,7 +50,6 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
     println!("Division {} added to conference {} with ID {}", args.name, conf_name, div_id);
     Ok(())
 }

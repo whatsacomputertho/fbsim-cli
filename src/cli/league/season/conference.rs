@@ -45,7 +45,7 @@ pub struct FbsimLeagueSeasonConferenceGetArgs {
     #[arg(long="year")]
     pub year: usize,
 
-    /// The conference index
+    /// The conference ID
     #[arg(short='c')]
     #[arg(long="conference")]
     pub conference: usize,

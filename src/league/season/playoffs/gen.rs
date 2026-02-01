@@ -28,9 +28,7 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
 
     // Generate the playoffs
     let mut rng = rand::thread_rng();
-
     let mut options = LeagueSeasonPlayoffOptions::new();
-
     let result_msg = if args.per_conference {
         // Validate conferences exist
         if season.conferences().is_empty() {
@@ -47,7 +45,6 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
         if let Err(e) = season.generate_playoffs(options, &mut rng) {
             return Err(format!("Failed to generate playoffs: {}", e));
         }
-
         let num_conferences = season.conferences().len();
         format!(
             "Conference playoffs generated with {} teams per conference ({} conferences)",
@@ -59,7 +56,6 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
         if let Err(e) = season.generate_playoffs(options, &mut rng) {
             return Err(format!("Failed to generate playoffs: {}", e));
         }
-
         format!("Playoffs generated with {} teams", args.num_teams)
     };
 
@@ -75,7 +71,6 @@ pub fn gen_playoffs(args: FbsimLeagueSeasonPlayoffsGenArgs) -> Result<(), String
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
     println!("{}", result_msg);
     Ok(())
 }

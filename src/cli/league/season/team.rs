@@ -36,7 +36,7 @@ pub struct FbsimLeagueSeasonTeamAssignArgs {
     #[arg(long="team")]
     pub team: usize,
 
-    /// The conference index
+    /// The conference ID
     #[arg(short='c')]
     #[arg(long="conference")]
     pub conference: usize,

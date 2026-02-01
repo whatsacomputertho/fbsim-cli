@@ -19,19 +19,15 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the league season
+    // Get the league season matchup
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
-
-    // Get the league season week from the league season
     let week = match season.weeks().get(args.week) {
         Some(week) => week,
         None => return Err(format!("No week found in season {} with id: {}", args.year, args.week)),
     };
-
-    // Get the league season matchup from the league week
     let matchup = match week.matchups().get(args.matchup) {
         Some(matchup) => matchup,
         None => return Err(
@@ -42,11 +38,9 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
         ),
     };
 
-    // Get the team names
+    // Get the team names and matchup context
     let away_team = season.team(*matchup.away_team()).unwrap().name();
     let home_team = season.team(*matchup.home_team()).unwrap().name();
-
-    // Get the game context and stats
     let context = matchup.context();
 
     // Display based on game state
@@ -54,7 +48,6 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
     println!();
     println!("{} @ {}", away_team, home_team);
     println!();
-
     if context.game_over() {
         println!("{} Final", context);
 
@@ -78,6 +71,5 @@ pub fn get_matchup(args: FbsimLeagueSeasonWeekMatchupGetArgs) -> Result<(), Stri
     } else {
         println!("{} Pending", context);
     }
-
     Ok(())
 }

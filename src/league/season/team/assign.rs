@@ -60,7 +60,6 @@ pub fn assign_team(args: FbsimLeagueSeasonTeamAssignArgs) -> Result<(), String> 
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
     println!("{} assigned to {} {}", team_name, conf_name, div_name);
     Ok(())
 }

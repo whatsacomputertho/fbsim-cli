@@ -30,6 +30,5 @@ pub fn get_playoffs(args: FbsimLeagueSeasonPlayoffsGetArgs) -> Result<(), String
     let playoffs = season.playoffs();
     println!("Playoffs for {} season ({} teams)", args.year, playoffs.num_teams());
     println!();
-
     display::display_playoffs(season)
 }
