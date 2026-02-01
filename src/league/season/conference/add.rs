@@ -31,7 +31,7 @@ pub fn add_conference(args: FbsimLeagueSeasonConferenceAddArgs) -> Result<(), St
 
     // Add the conference
     let conference = LeagueConference::with_name(&args.name);
-    season.add_conference(conference);
+    season.add_conference(conference)?;
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);

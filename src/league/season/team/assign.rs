@@ -43,10 +43,22 @@ pub fn assign_team(args: FbsimLeagueSeasonTeamAssignArgs) -> Result<(), String> 
         None => return Err(format!("No division found with ID: {}", args.division)),
     };
 
+    // Verify the team is not already assigned to a division in any conference
+    for (ci, conference) in season.conferences().iter().enumerate() {
+        for (di, division) in conference.divisions().iter().enumerate() {
+            if division.teams().contains(&args.team) {
+                return Err(format!(
+                    "{} is already assigned to {} {} (conference {}, division {})",
+                    team_name, conference.name(), division.name(), ci, di
+                ));
+            }
+        }
+    }
+
     // Assign the team to the division
     let conference = season.conference_mut(args.conference).unwrap();
     let division = conference.division_mut(args.division).unwrap();
-    division.add_team(args.team);
+    division.add_team(args.team)?;
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);

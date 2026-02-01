@@ -36,7 +36,7 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
 
     // Add the division
     let division = LeagueDivision::with_name(&args.name);
-    conference.add_division(division);
+    conference.add_division(division)?;
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
