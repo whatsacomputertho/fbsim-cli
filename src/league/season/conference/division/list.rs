@@ -21,32 +21,26 @@ pub fn list_divisions(args: FbsimLeagueSeasonConferenceDivisionListArgs) -> Resu
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the season
+    // Get the season, conference, and divisions
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
-
-    // Get the conference
     let conferences = season.conferences();
     let conference = match conferences.get(args.conference) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", args.conference)),
+        None => return Err(format!("No conference found with ID: {}", args.conference)),
     };
-
-    // Get divisions
     let divisions = conference.divisions();
-
     if divisions.is_empty() {
-        println!("No divisions found in conference '{}'", conference.name());
+        println!("No divisions found in conference {}", conference.name());
         return Ok(());
     }
 
     // Display divisions in a table
-    println!("Divisions in {} Conference", conference.name());
+    println!("=== {} Divisions ===", conference.name());
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "ID\tName\tTeams").map_err(|e| e.to_string())?;
-
     for (div_id, division) in divisions.iter().enumerate() {
         writeln!(
             &mut tw, "{}\t{}\t{}",

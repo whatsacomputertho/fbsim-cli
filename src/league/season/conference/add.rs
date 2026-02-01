@@ -26,8 +26,8 @@ pub fn add_conference(args: FbsimLeagueSeasonConferenceAddArgs) -> Result<(), St
         None => return Err(String::from("No current season found")),
     };
 
-    // Get the index before adding
-    let conf_index = season.conferences().len();
+    // Get the conference ID before adding
+    let conf_id = season.conferences().len();
 
     // Add the conference
     let conference = LeagueConference::with_name(&args.name);
@@ -46,6 +46,6 @@ pub fn add_conference(args: FbsimLeagueSeasonConferenceAddArgs) -> Result<(), St
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("Conference '{}' added with index {}", args.name, conf_index);
+    println!("Conference {} added to season with ID {}", args.name, conf_id);
     Ok(())
 }

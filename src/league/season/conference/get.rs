@@ -21,26 +21,20 @@ pub fn get_conference(args: FbsimLeagueSeasonConferenceGetArgs) -> Result<(), St
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the season
+    // Get the season and conference
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
-
-    // Get the conference
     let conferences = season.conferences();
     let conference = match conferences.get(args.conference) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", args.conference)),
+        None => return Err(format!("No conference found with ID: {}", args.conference)),
     };
 
-    // Display conference info
+    // Display conference divisions in a table
+    println!("=== {} ===", conference.name());
     let mut tw = TabWriter::new(stdout());
-    writeln!(&mut tw, "Conference:\t{}", conference.name()).map_err(|e| e.to_string())?;
-    writeln!(&mut tw, "Index:\t{}", args.conference).map_err(|e| e.to_string())?;
-    writeln!(&mut tw).map_err(|e| e.to_string())?;
-
-    // Display divisions
     if conference.divisions().is_empty() {
         writeln!(&mut tw, "No divisions").map_err(|e| e.to_string())?;
     } else {
@@ -58,25 +52,27 @@ pub fn get_conference(args: FbsimLeagueSeasonConferenceGetArgs) -> Result<(), St
 
     // Display teams in conference
     let team_ids = conference.all_teams();
-
     if !team_ids.is_empty() {
         writeln!(&mut tw).map_err(|e| e.to_string())?;
         writeln!(&mut tw, "Teams:").map_err(|e| e.to_string())?;
-        writeln!(&mut tw, "ID\tName\tDivision").map_err(|e| e.to_string())?;
+        writeln!(&mut tw, "ID\tName\tDivision\tRecord").map_err(|e| e.to_string())?;
         for division in conference.divisions() {
             for team_id in division.teams() {
                 if let Some(team) = season.team(*team_id) {
+                    let record = season.team_matchups(*team_id)
+                        .map(|m| m.record().to_string())
+                        .unwrap_or_else(|_| String::from("-"));
                     writeln!(
-                        &mut tw, "{}\t{}\t{}",
+                        &mut tw, "{}\t{}\t{}\t{}",
                         team_id,
                         team.name(),
-                        division.name()
+                        division.name(),
+                        record
                     ).map_err(|e| e.to_string())?;
                 }
             }
         }
     }
-
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

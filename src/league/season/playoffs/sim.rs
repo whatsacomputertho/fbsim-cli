@@ -3,6 +3,7 @@ use std::fs;
 use fbsim_core::league::League;
 
 use crate::cli::league::season::playoffs::FbsimLeagueSeasonPlayoffsSimArgs;
+use crate::league::season::playoffs::display;
 
 use serde_json;
 
@@ -31,13 +32,8 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         return Err(format!("Failed to simulate playoffs: {}", e));
     }
 
-    // Get the champion
-    let champion_msg = if let Some(champion_id) = season.playoffs().champion() {
-        let champion = season.team(champion_id).unwrap();
-        format!("Champion: {}", champion.name())
-    } else {
-        String::from("Playoffs complete")
-    };
+    // Display the full playoff results
+    display::display_playoffs(season)?;
 
     // Serialize the league as JSON
     let league_res = serde_json::to_string_pretty(&league);
@@ -52,6 +48,5 @@ pub fn sim_playoffs(args: FbsimLeagueSeasonPlayoffsSimArgs) -> Result<(), String
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("{}", champion_msg);
     Ok(())
 }

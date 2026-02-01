@@ -23,19 +23,17 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
         Err(error) => return Err(format!("Error loading league from file: {}", error)),
     };
 
-    // Get the league season
+    // Get the league season and team
     let season = match league.season(args.year) {
         Some(season) => season,
         None => return Err(format!("No season found with year: {}", args.year)),
     };
-
-    // Get the league season team from the league season
     let team = match season.team(args.id) {
         Some(team) => team,
         None => return Err(format!("No team found in season {} with id: {}", args.year, args.id)),
     };
 
-    // Get the league season team's matchups from the league season
+    // Get the team's matchups from the league season
     let matchups = season.team_matchups(args.id)?;
 
     // Get playoff information
@@ -57,7 +55,7 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
         total_record.increment_ties(*pr.ties());
     }
 
-    // Display the results in a table
+    // Display team information for the season
     let mut tw = TabWriter::new(stdout());
     writeln!(&mut tw, "Team:\t{}", team.name()).map_err(|e| e.to_string())?;
     writeln!(&mut tw, "Record:\t{}", total_record).map_err(|e| e.to_string())?;
@@ -84,22 +82,18 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             if let Some(entry) = picture.team_status(args.id) {
                 let status_str = format_playoff_status(entry.status());
                 writeln!(&mut tw, "Playoff Status:\t{}", status_str).map_err(|e| e.to_string())?;
-
                 if entry.games_back() > 0.0 {
                     writeln!(&mut tw, "Games Back:\t{:.1}", entry.games_back()).map_err(|e| e.to_string())?;
                 }
-
                 if let Some(magic) = entry.magic_number() {
                     if magic > 0 {
                         writeln!(&mut tw, "Magic Number:\t{}", magic).map_err(|e| e.to_string())?;
                     }
                 }
-
                 writeln!(&mut tw, "Remaining Games:\t{}", entry.remaining_games()).map_err(|e| e.to_string())?;
             }
         }
     }
-
     writeln!(&mut tw).map_err(|e| e.to_string())?;
 
     // Display each regular season matchup
@@ -121,7 +115,7 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             },
             None => {
                 writeln!(
-                    &mut tw, "{}\tBYE", i+1
+                    &mut tw, "{}\tBYE\t-\tBYE\t-", i+1
                 ).map_err(|e| e.to_string())?;
             },
         }
@@ -129,8 +123,6 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
 
     // Display playoff matchups if the team participated
     let mut has_playoff_matchups = false;
-
-    // Check conference brackets
     for rounds in playoffs.conference_brackets().values() {
         for round in rounds.iter() {
             for matchup in round.matchups().iter() {
@@ -156,14 +148,15 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             if has_playoff_matchups { break; }
         }
     }
-
     if has_playoff_matchups {
+        // Playoffs header
         writeln!(&mut tw, "\nPlayoffs").map_err(|e| e.to_string())?;
         writeln!(
             &mut tw,
             "Round\tHome Team\tHome Score\tAway Team\tAway Score"
         ).map_err(|e| e.to_string())?;
 
+        // Display conference playoff matchups
         for (conf_index, rounds) in playoffs.conference_brackets() {
             let conf_label = season.conferences().get(*conf_index)
                 .map(|c| c.name().to_string())
@@ -185,6 +178,7 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             }
         }
 
+        // Display winners bracket matchups
         for (round_index, round) in playoffs.winners_bracket().iter().enumerate() {
             for matchup in round.matchups().iter() {
                 if *matchup.home_team() == args.id || *matchup.away_team() == args.id {
@@ -201,7 +195,6 @@ pub fn get_season_team(args: FbsimLeagueSeasonTeamGetArgs) -> Result<(), String>
             }
         }
     }
-
     tw.flush().map_err(|e| e.to_string())?;
     Ok(())
 }

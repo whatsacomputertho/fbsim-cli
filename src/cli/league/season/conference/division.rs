@@ -13,11 +13,6 @@ pub struct FbsimLeagueSeasonConferenceDivisionAddArgs {
     #[arg(long="conference")]
     pub conference: usize,
 
-    /// The division ID
-    #[arg(short='i')]
-    #[arg(long="id")]
-    pub id: usize,
-
     /// The name of the division
     #[arg(short='n')]
     #[arg(long="name")]

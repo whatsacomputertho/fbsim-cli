@@ -46,7 +46,6 @@ pub fn get_playoffs_picture(args: FbsimLeagueSeasonPlayoffsPictureArgs) -> Resul
 
     // Determine if we should use conference-based playoff picture
     let has_conferences = !season.conferences().is_empty();
-
     if args.per_conference {
         if !has_conferences {
             return Err(String::from(
@@ -72,8 +71,12 @@ fn display_traditional_playoff_picture(
     args: &FbsimLeagueSeasonPlayoffsPictureArgs,
     weeks_remaining: usize
 ) -> Result<(), String> {
-    // Get the playoff picture
-    let picture = season.playoff_picture(args.num_playoff_teams)?;
+    // Get the playoff picture (explicitly non-conference)
+    let options = PlayoffPictureOptions {
+        by_conference: Some(false),
+        division_winners_guaranteed: args.division_winners,
+    };
+    let picture = PlayoffPicture::from_season(season, args.num_playoff_teams, Some(options))?;
 
     // Display header
     println!("Playoff Picture for {} Season", args.year);
@@ -135,7 +138,7 @@ fn display_conference_playoff_picture_sections(
 ) -> Result<(), String> {
     let conference = match season.conferences().get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_index)),
+        None => return Err(format!("No conference found with ID: {}", conf_index)),
     };
     let conf_teams: Vec<usize> = conference.all_teams();
 
@@ -229,7 +232,7 @@ fn display_single_conference_picture(
     let conferences = season.conferences();
     let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_index)),
+        None => return Err(format!("No conference found with ID: {}", conf_index)),
     };
 
     // Display header
@@ -239,7 +242,11 @@ fn display_single_conference_picture(
     println!();
 
     // Use regular playoff picture but filtered to conference teams
-    let picture = season.playoff_picture(args.num_playoff_teams)?;
+    let options = PlayoffPictureOptions {
+        by_conference: Some(false),
+        division_winners_guaranteed: args.division_winners,
+    };
+    let picture = PlayoffPicture::from_season(season, args.num_playoff_teams, Some(options))?;
     display_playoff_picture_sections(&picture)?;
     display_legend();
     Ok(())

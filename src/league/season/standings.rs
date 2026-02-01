@@ -87,6 +87,7 @@ fn display_standings_by_conference(
     season: &fbsim_core::league::season::LeagueSeason
 ) -> Result<(), String> {
     let conferences = season.conferences();
+    let num_conferences = conferences.len();
 
     for (conf_index, conference) in conferences.iter().enumerate() {
         println!("=== {} ===", conference.name());
@@ -109,7 +110,9 @@ fn display_standings_by_conference(
             ).map_err(|e| e.to_string())?;
         }
         tw.flush().map_err(|e| e.to_string())?;
-        println!();
+        if conf_index != (num_conferences - 1) {
+            println!();
+        }
     }
     Ok(())
 }
@@ -118,11 +121,14 @@ fn display_standings_by_division(
     season: &fbsim_core::league::season::LeagueSeason
 ) -> Result<(), String> {
     let conferences = season.conferences();
+    let num_conferences = conferences.len();
 
     for (conf_index, conference) in conferences.iter().enumerate() {
         println!("=== {} ===", conference.name());
+        let divisions = conference.divisions();
+        let num_divisions = divisions.len();
 
-        for (div_id, division) in conference.divisions().iter().enumerate() {
+        for (div_id, division) in divisions.iter().enumerate() {
             println!("--- {} ---", division.name());
 
             let standings = season.division_standings(conf_index, div_id)?;
@@ -143,6 +149,12 @@ fn display_standings_by_division(
                 ).map_err(|e| e.to_string())?;
             }
             tw.flush().map_err(|e| e.to_string())?;
+            if div_id != (num_divisions - 1) {
+                println!();
+            }
+        }
+
+        if conf_index != (num_conferences - 1) {
             println!();
         }
     }
@@ -156,7 +168,7 @@ fn display_conference_standings(
     let conferences = season.conferences();
     let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_index)),
+        None => return Err(format!("No conference found with ID: {}", conf_index)),
     };
 
     println!("=== {} ===", conference.name());
@@ -190,7 +202,7 @@ fn display_division_standings(
     let conferences = season.conferences();
     let conference = match conferences.get(conf_index) {
         Some(c) => c,
-        None => return Err(format!("No conference found with index: {}", conf_index)),
+        None => return Err(format!("No conference found with ID: {}", conf_index)),
     };
 
     let division = match conference.division(div_id) {
@@ -198,7 +210,7 @@ fn display_division_standings(
         None => return Err(format!("No division found with ID: {}", div_id)),
     };
 
-    println!("=== {} - {} ===", conference.name(), division.name());
+    println!("=== {} {} ===", conference.name(), division.name());
 
     let standings = season.division_standings(conf_index, div_id)?;
 

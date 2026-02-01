@@ -1,12 +1,12 @@
 use std::fs;
-use std::io::{Write, stdout};
 
 use fbsim_core::league::League;
+use fbsim_core::league::season::LeagueSeason;
 
 use crate::cli::league::season::playoffs::round::FbsimLeagueSeasonPlayoffsRoundSimArgs;
+use crate::league::season::playoffs::round::display;
 
 use serde_json;
-use tabwriter::TabWriter;
 
 pub fn sim_playoffs_round(args: FbsimLeagueSeasonPlayoffsRoundSimArgs) -> Result<(), String> {
     // Load the league from its file as mutable
@@ -27,31 +27,34 @@ pub fn sim_playoffs_round(args: FbsimLeagueSeasonPlayoffsRoundSimArgs) -> Result
         None => return Err(String::from("No current season found")),
     };
 
-    // Simulate the playoff round
     let mut rng = rand::thread_rng();
     let is_conference_playoff = season.playoffs().is_conference_playoff();
+    let year = *season.year();
 
-    // For conference playoffs, simulate the round (the core library handles conference-specific logic)
-    if let Err(e) = season.sim_playoff_round(args.round, &mut rng) {
+    // Determine the current round and whether it's a winners bracket round
+    let (round_index, is_winners_bracket) = find_current_round(season)?;
+
+    // Simulate the round
+    if is_winners_bracket {
+        if let Err(e) = season.sim_winners_bracket_round(round_index, &mut rng) {
+            return Err(format!("Failed to simulate winners bracket round: {}", e));
+        }
+    } else if let Err(e) = season.sim_playoff_round(round_index, &mut rng) {
         return Err(format!("Failed to simulate playoff round: {}", e));
     }
 
     // Try to generate the next round if playoffs are not yet complete.
-    // generate_next_playoff_round handles all transitions (next conference round,
-    // winners bracket generation, next winners bracket round) and will return an
-    // error if the current round is not yet complete, which we can safely ignore.
     if !season.playoffs().complete() {
         let _ = season.generate_next_playoff_round(&mut rng);
     }
 
-    // Get the year for display
-    let year = *season.year();
-
-    // Display results
-    if is_conference_playoff {
-        display_conference_round_results(season, args.round, args.conference)?;
+    // Display results using the same format as the get command
+    if is_winners_bracket {
+        display::display_winners_bracket_round(season, round_index, year)?;
+    } else if is_conference_playoff {
+        display::display_conference_round(season, round_index, None, year)?;
     } else {
-        display_traditional_round_results(season, args.round)?;
+        display::display_traditional_round(season, round_index, year)?;
     }
 
     // Display champion if playoffs are complete
@@ -74,104 +77,41 @@ pub fn sim_playoffs_round(args: FbsimLeagueSeasonPlayoffsRoundSimArgs) -> Result
     if let Err(e) = write_res {
         return Err(format!("Error writing league file: {}", e));
     }
-
-    let _ = year; // suppress unused warning
     Ok(())
 }
 
-fn display_traditional_round_results(
-    season: &fbsim_core::league::season::LeagueSeason,
-    round_index: usize
-) -> Result<(), String> {
-    let brackets = season.playoffs().conference_brackets();
-    let rounds = match brackets.values().next() {
-        Some(r) => r,
-        None => return Err(String::from("No playoff bracket found")),
-    };
-    let round = match rounds.get(round_index) {
-        Some(r) => r,
-        None => return Err(format!("No playoff round found with index: {}", round_index)),
-    };
+/// Find the current incomplete round. Returns (round_index, is_winners_bracket).
+fn find_current_round(
+    season: &LeagueSeason
+) -> Result<(usize, bool), String> {
+    let playoffs = season.playoffs();
 
-    println!("Playoff Round {} Results", round_index);
-    let mut tw = TabWriter::new(stdout());
-    writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score").map_err(|e| e.to_string())?;
-    for (matchup_index, matchup) in round.matchups().iter().enumerate() {
-        let away_team = season.team(*matchup.away_team()).unwrap().name();
-        let home_team = season.team(*matchup.home_team()).unwrap().name();
-        let context = matchup.context();
-        writeln!(
-            &mut tw, "{}\t{}\t{}\t{}\t{}",
-            matchup_index,
-            away_team, context.away_score(),
-            home_team, context.home_score()
-        ).map_err(|e| e.to_string())?;
-    }
-    tw.flush().map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-fn display_conference_round_results(
-    season: &fbsim_core::league::season::LeagueSeason,
-    round_index: usize,
-    filter_conference: Option<usize>
-) -> Result<(), String> {
-    let conferences = season.conferences();
-    let conference_brackets = season.playoffs().conference_brackets();
-
-    for (conf_index, conf_rounds) in conference_brackets.iter() {
-        // Skip if filtering to specific conference
-        if let Some(filter) = filter_conference {
-            if filter != *conf_index {
-                continue;
-            }
-        }
-
-        let conf_name = conferences.get(*conf_index)
-            .map(|c| c.name().to_string())
-            .unwrap_or_else(|| format!("Conference {}", conf_index));
-
-        if let Some(round) = conf_rounds.get(round_index) {
-            println!("=== {} Round {} Results ===", conf_name, round_index);
-            let mut tw = TabWriter::new(stdout());
-            writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score").map_err(|e| e.to_string())?;
-            for (matchup_index, matchup) in round.matchups().iter().enumerate() {
-                let away_team = season.team(*matchup.away_team()).unwrap().name();
-                let home_team = season.team(*matchup.home_team()).unwrap().name();
-                let context = matchup.context();
-                writeln!(
-                    &mut tw, "{}\t{}\t{}\t{}\t{}",
-                    matchup_index,
-                    away_team, context.away_score(),
-                    home_team, context.home_score()
-                ).map_err(|e| e.to_string())?;
-            }
-            tw.flush().map_err(|e| e.to_string())?;
-            println!();
-        }
+    if playoffs.complete() {
+        return Err(String::from("Playoffs are already complete"));
     }
 
-    // Also display winners bracket if it exists
-    let winners_bracket = season.playoffs().winners_bracket();
-    if !winners_bracket.is_empty() {
-        println!("=== Championship Round ===");
-        for round in winners_bracket.iter() {
-            let mut tw = TabWriter::new(stdout());
-            writeln!(&mut tw, "Matchup\tAway Team\tAway Score\tHome Team\tHome Score").map_err(|e| e.to_string())?;
-            for (matchup_index, matchup) in round.matchups().iter().enumerate() {
-                let away_team = season.team(*matchup.away_team()).unwrap().name();
-                let home_team = season.team(*matchup.home_team()).unwrap().name();
-                let context = matchup.context();
-                writeln!(
-                    &mut tw, "{}\t{}\t{}\t{}\t{}",
-                    matchup_index,
-                    away_team, context.away_score(),
-                    home_team, context.home_score()
-                ).map_err(|e| e.to_string())?;
+    // Check conference brackets first
+    if !playoffs.conference_brackets_complete() {
+        // Find the first incomplete round across conference brackets
+        for (_conf_index, rounds) in playoffs.conference_brackets().iter() {
+            for (round_index, round) in rounds.iter().enumerate() {
+                if !round.complete() {
+                    return Ok((round_index, false));
+                }
             }
-            tw.flush().map_err(|e| e.to_string())?;
         }
+        return Err(String::from("All conference playoff rounds are complete"));
     }
 
-    Ok(())
+    // Conference brackets are complete, check winners bracket
+    let winners_bracket = playoffs.winners_bracket();
+    if winners_bracket.is_empty() {
+        return Err(String::from("Winners bracket has not been generated yet"));
+    }
+    for (round_index, round) in winners_bracket.iter().enumerate() {
+        if !round.complete() {
+            return Ok((round_index, true));
+        }
+    }
+    Err(String::from("All playoff rounds are complete"))
 }

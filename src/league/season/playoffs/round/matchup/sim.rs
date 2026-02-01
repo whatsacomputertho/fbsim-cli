@@ -181,20 +181,20 @@ fn get_matchup<'a>(
         let winners = playoffs.winners_bracket();
         match winners.get(args.round) {
             Some(r) => r,
-            None => return Err(format!("No winners bracket round found with index: {}", args.round)),
+            None => return Err(format!("No winners bracket round found with ID: {}", args.round)),
         }
     } else {
         let bracket = match playoffs.conference_bracket(args.conference) {
             Some(b) => b,
-            None => return Err(format!("No conference bracket found with index: {}", args.conference)),
+            None => return Err(format!("No conference bracket found with ID: {}", args.conference)),
         };
         match bracket.get(args.round) {
             Some(r) => r,
-            None => return Err(format!("No playoff round found with index: {}", args.round)),
+            None => return Err(format!("No playoff round found with ID: {}", args.round)),
         }
     };
     match round.matchups().get(args.matchup) {
         Some(m) => Ok(m),
-        None => Err(format!("No matchup found with index: {}", args.matchup)),
+        None => Err(format!("No matchup found with ID: {}", args.matchup)),
     }
 }

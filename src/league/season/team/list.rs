@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::{Write, stdout};
 
@@ -41,27 +42,69 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
         None
     };
 
+    // Determine if we need conference/division columns
+    let conferences = season.conferences();
+    let show_conference = conferences.len() > 1;
+    let show_division = conferences.iter().any(|c| c.divisions().len() > 1);
+
+    // Build team -> conference/division lookup maps
+    let mut team_conference: HashMap<usize, String> = HashMap::new();
+    let mut team_division: HashMap<usize, String> = HashMap::new();
+    if show_conference || show_division {
+        for conference in conferences.iter() {
+            for division in conference.divisions().iter() {
+                for team_id in division.teams().iter() {
+                    if show_conference {
+                        team_conference.insert(*team_id, conference.name().to_string());
+                    }
+                    if show_division {
+                        let div_name = division.name();
+                        let div_str = if div_name.is_empty() {
+                            "-".to_string()
+                        } else {
+                            div_name.to_string()
+                        };
+                        team_division.insert(*team_id, div_str);
+                    }
+                }
+            }
+        }
+    }
+
     // Get standings for proper ordering
     let standings = season.standings();
 
     // Display the results in a table
     let mut tw = TabWriter::new(stdout());
 
-    // Determine header based on season state
+    // Build header
+    let mut header = String::from("Team");
+    if show_conference { header.push_str("\tConference"); }
+    if show_division { header.push_str("\tDivision"); }
+    header.push_str("\tRecord");
     if playoffs_complete {
-        writeln!(&mut tw, "Team\tRecord\tPlayoffs\tChampion").map_err(|e| e.to_string())?;
+        header.push_str("\tPlayoffs\tChampion");
     } else if playoffs_started {
-        writeln!(&mut tw, "Team\tRecord\tPlayoffs").map_err(|e| e.to_string())?;
+        header.push_str("\tPlayoffs");
     } else if playoff_picture.is_some() {
-        // During regular season, show playoff picture columns
-        writeln!(&mut tw, "Team\tRecord\tStatus\tGB\tMagic #").map_err(|e| e.to_string())?;
-    } else {
-        writeln!(&mut tw, "Team\tRecord").map_err(|e| e.to_string())?;
+        header.push_str("\tStatus\tGB\tMagic #");
     }
+    writeln!(&mut tw, "{}", header).map_err(|e| e.to_string())?;
 
     for (id, _) in standings.iter() {
         let team = season.team(*id).unwrap();
         let matchups: LeagueSeasonMatchups = season.team_matchups(*id)?;
+
+        // Build conference/division prefix
+        let mut prefix = team.name().to_string();
+        if show_conference {
+            let conf = team_conference.get(id).map(|s| s.as_str()).unwrap_or("-");
+            prefix.push_str(&format!("\t{}", conf));
+        }
+        if show_division {
+            let div = team_division.get(id).map(|s| s.as_str()).unwrap_or("-");
+            prefix.push_str(&format!("\t{}", div));
+        }
 
         if playoffs_complete {
             let playoff_record_str = match playoffs.record(*id) {
@@ -71,7 +114,7 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
             let champion_str = if champion_id == Some(*id) { "X" } else { "" };
             writeln!(
                 &mut tw, "{}\t{}\t{}\t{}",
-                team.name(), matchups.record(), playoff_record_str, champion_str
+                prefix, matchups.record(), playoff_record_str, champion_str
             ).map_err(|e| e.to_string())?;
         } else if playoffs_started {
             let playoff_record_str = match playoffs.record(*id) {
@@ -80,7 +123,7 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
             };
             writeln!(
                 &mut tw, "{}\t{}\t{}",
-                team.name(), matchups.record(), playoff_record_str
+                prefix, matchups.record(), playoff_record_str
             ).map_err(|e| e.to_string())?;
         } else if let Some(ref picture) = playoff_picture {
             if let Some(entry) = picture.team_status(*id) {
@@ -97,18 +140,18 @@ pub fn list_season_teams(args: FbsimLeagueSeasonTeamListArgs) -> Result<(), Stri
                 };
                 writeln!(
                     &mut tw, "{}\t{}\t{}\t{}\t{}",
-                    team.name(), matchups.record(), status_str, gb_str, magic_str
+                    prefix, matchups.record(), status_str, gb_str, magic_str
                 ).map_err(|e| e.to_string())?;
             } else {
                 writeln!(
                     &mut tw, "{}\t{}\t-\t-\t-",
-                    team.name(), matchups.record()
+                    prefix, matchups.record()
                 ).map_err(|e| e.to_string())?;
             }
         } else {
             writeln!(
                 &mut tw, "{}\t{}",
-                team.name(), matchups.record()
+                prefix, matchups.record()
             ).map_err(|e| e.to_string())?;
         }
     }

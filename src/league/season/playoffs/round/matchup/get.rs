@@ -33,24 +33,24 @@ pub fn get_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupGetArgs) 
         let winners = playoffs.winners_bracket();
         match winners.get(args.round) {
             Some(r) => r,
-            None => return Err(format!("No winners bracket round found with index: {}", args.round)),
+            None => return Err(format!("No winners bracket round found with ID: {}", args.round)),
         }
     } else {
         let conf_index = args.conference.unwrap_or(0);
         let bracket = match playoffs.conference_bracket(conf_index) {
             Some(b) => b,
-            None => return Err(format!("No conference bracket found with index: {}", conf_index)),
+            None => return Err(format!("No conference bracket found with ID: {}", conf_index)),
         };
         match bracket.get(args.round) {
             Some(r) => r,
-            None => return Err(format!("No playoff round found with index: {}", args.round)),
+            None => return Err(format!("No playoff round found with ID: {}", args.round)),
         }
     };
 
     // Get the matchup
     let matchup = match round.matchups().get(args.matchup) {
         Some(m) => m,
-        None => return Err(format!("No matchup found with index: {}", args.matchup)),
+        None => return Err(format!("No matchup found with ID: {}", args.matchup)),
     };
 
     // Get team names
@@ -58,15 +58,26 @@ pub fn get_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupGetArgs) 
     let home_team = season.team(*matchup.home_team()).unwrap();
     let context = matchup.context();
 
-    // Display matchup info
-    println!("Playoff Round {} Matchup {}", args.round, args.matchup);
+    // Display matchup header based on bracket type
+    let header = if args.winners_bracket {
+        format!("Championship round {} matchup {}", args.round, args.matchup)
+    } else if playoffs.is_conference_playoff() {
+        let conf_index = args.conference.unwrap_or(0);
+        let conf_name = season.conferences().get(conf_index)
+            .map(|c| c.name().to_string())
+            .unwrap_or_else(|| format!("Conference {}", conf_index));
+        format!("{} conference playoff round {} matchup {}", conf_name, args.round, args.matchup)
+    } else {
+        format!("Playoff round {} matchup {}", args.round, args.matchup)
+    };
+    println!("{}", header);
     println!();
     println!("{} @ {}", away_team.name(), home_team.name());
     println!();
-    println!("{}", context);
 
-    // Display stats if game is complete
     if context.game_over() {
+        println!("{} Final", context);
+
         if let Some(home_stats) = matchup.home_stats() {
             println!();
             println!("{} stats\n{}", context.home_team_short(), home_stats);
@@ -75,6 +86,17 @@ pub fn get_playoffs_matchup(args: FbsimLeagueSeasonPlayoffsRoundMatchupGetArgs) 
             println!();
             println!("{} stats\n{}", context.away_team_short(), away_stats);
         }
+    } else if context.started() {
+        // Display play-by-play log up to this point
+        if let Some(game) = matchup.game() {
+            for drive in game.drives().iter() {
+                println!("{}\n", drive);
+            }
+        } else {
+            println!("{}", context);
+        }
+    } else {
+        println!("{} Pending", context);
     }
 
     Ok(())

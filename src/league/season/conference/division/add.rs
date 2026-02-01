@@ -32,6 +32,10 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
         None => return Err(format!("No conference found with index: {}", args.conference)),
     };
 
+    // Get the division ID and conference name before adding
+    let div_id = conference.divisions().len();
+    let conf_name = conference.name_mut().clone();
+
     // Add the division
     let division = LeagueDivision::with_name(&args.name);
     conference.add_division(division);
@@ -49,6 +53,6 @@ pub fn add_division(args: FbsimLeagueSeasonConferenceDivisionAddArgs) -> Result<
         return Err(format!("Error writing league file: {}", e));
     }
 
-    println!("Division '{}' added to conference {}", args.name, args.conference);
+    println!("Division {} added to conference {} with ID {}", args.name, conf_name, div_id);
     Ok(())
 }
