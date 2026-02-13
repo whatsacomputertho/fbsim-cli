@@ -21,10 +21,6 @@ fbsim game sim --home home.json --away away.json
 
 An example team is given below. Here, the numeric skill level properties MUST be in range `[0, 100]`.
 
-<details>
-
-<summary>Example team</summary>
-
 ```json
 {
     "name": "Null Island Defaults",
@@ -56,5 +52,3 @@ An example team is given below. Here, the numeric skill level properties MUST be
     }
 }
 ```
-
-</details>
